@@ -15,7 +15,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.static_interface.sinkscripts;
+package de.static_interface.sinkscripts.commands;
 
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.User;
@@ -26,6 +26,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BlockIterator;
 
 import java.io.*;
@@ -39,9 +40,9 @@ public class ScriptCommand implements CommandExecutor
     public static HashMap<String, GroovyShell> shellInstances = new HashMap<>(); // PlayerName - Shell Instance
     public static HashMap<String, String> codeInstances = new HashMap<>(); // PlayerName - Code Instance
     static File scriptFolder;
-    Plugin plugin;
+    JavaPlugin plugin;
 
-    public ScriptCommand(Plugin plugin)
+    public ScriptCommand(JavaPlugin plugin)
     {
         this.plugin = plugin;
         scriptFolder = new File(SinkLibrary.getCustomDataFolder(), "scripts");
@@ -245,7 +246,8 @@ public class ScriptCommand implements CommandExecutor
                 switch ( mode )
                 {
                     case ".help":
-                        user.sendMessage(ChatColor.GREEN + "[Help] " + ChatColor.GRAY + "Available Commands: help, execute, history");
+                        user.sendMessage(ChatColor.GREEN + "[Help] " + ChatColor.GRAY + "Available Commands: .help, .load <file>, " +
+                                ".save <file>, .execute [file], .setvariable <name> <value>, .history, .clear");
                         break;
 
                     case ".clear":

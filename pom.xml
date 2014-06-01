@@ -21,7 +21,7 @@
 
     <groupId>de.static_interface</groupId>
     <artifactId>SinkScripts</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0-REL</version>
     <name>SinkScripts</name>
     <url>http://dev.bukkit.org/bukkit-plugins/sinkscripts</url>
 
@@ -72,7 +72,7 @@
         <dependency>
             <groupId>de.static_interface</groupId>
             <artifactId>SinkLibrary</artifactId>
-            <version>1.9.5-REL</version>
+            <version>1.9.7-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -100,6 +100,14 @@
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <minimizeJar>true</minimizeJar>
+                            <filters>
+                                <filter>
+                                    <artifact>org.codehaus.groovy:groovy</artifact>
+                                    <includes>
+                                        <include>**</include>
+                                    </includes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>

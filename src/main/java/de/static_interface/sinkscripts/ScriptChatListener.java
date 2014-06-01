@@ -19,7 +19,7 @@ package de.static_interface.sinkscripts;
 
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.User;
-import de.static_interface.sinklibrary.commands.ScriptCommand;
+import de.static_interface.sinkscripts.commands.ScriptCommand;
 import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

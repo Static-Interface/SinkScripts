@@ -19,6 +19,7 @@ package de.static_interface.sinkscripts;
 
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.exceptions.NotInitializedException;
+import de.static_interface.sinkscripts.commands.ScriptCommand;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
