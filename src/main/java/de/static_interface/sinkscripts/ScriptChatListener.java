@@ -17,8 +17,6 @@
 
 package de.static_interface.sinkscripts;
 
-import de.static_interface.sinklibrary.SinkLibrary;
-import de.static_interface.sinklibrary.User;
 import de.static_interface.sinkscripts.commands.ScriptCommand;
 import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
@@ -40,18 +38,17 @@ public class ScriptChatListener implements Listener
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void handleChatScript(final AsyncPlayerChatEvent event)
     {
-        final User user = SinkLibrary.getUser(event.getPlayer());
-        if ( !ScriptCommand.isEnabled(user) ) return;
+        if ( !ScriptCommand.isEnabled(event.getPlayer()) ) return;
         event.setCancelled(true);
         String currentLine = ChatColor.stripColor(event.getMessage());
-        ScriptCommand.executeScript(SinkLibrary.getUser(event.getPlayer()), currentLine, plugin);
+        ScriptCommand.executeScript(event.getPlayer(), currentLine, plugin);
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerQuit(PlayerQuitEvent event)
     {
         String name = event.getPlayer().getName();
-        ScriptCommand.disable(SinkLibrary.getUser(event.getPlayer()));
+        ScriptCommand.disable(event.getPlayer());
         if ( ScriptCommand.shellInstances.containsKey(name) )
         {
             ScriptCommand.shellInstances.get(name).getClassLoader().clearCache();

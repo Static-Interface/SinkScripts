@@ -57,6 +57,6 @@ public class SinkScripts extends JavaPlugin
 
     private void registerCommands()
     {
-        getCommand("script").setExecutor(new ScriptCommand(this));
+        SinkLibrary.registerCommand("script", new ScriptCommand(this));
     }
 }

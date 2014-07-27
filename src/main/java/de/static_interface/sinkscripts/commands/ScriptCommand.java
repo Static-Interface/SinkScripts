@@ -18,15 +18,14 @@
 package de.static_interface.sinkscripts.commands;
 
 import de.static_interface.sinklibrary.SinkLibrary;
-import de.static_interface.sinklibrary.User;
+import de.static_interface.sinklibrary.commands.Command;
+import de.static_interface.sinklibrary.irc.IrcCommandSender;
 import groovy.lang.GroovyShell;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BlockIterator;
 
 import java.io.*;
@@ -34,17 +33,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 
-public class ScriptCommand implements CommandExecutor
+public class ScriptCommand extends Command
 {
     public static ArrayList<String> enabledUsers = new ArrayList<>();
     public static HashMap<String, GroovyShell> shellInstances = new HashMap<>(); // PlayerName - Shell Instance
     public static HashMap<String, String> codeInstances = new HashMap<>(); // PlayerName - Code Instance
     static File scriptFolder;
-    JavaPlugin plugin;
-
-    public ScriptCommand(JavaPlugin plugin)
+    public ScriptCommand(Plugin plugin)
     {
-        this.plugin = plugin;
+        super(plugin);
         scriptFolder = new File(SinkLibrary.getCustomDataFolder(), "scripts");
         if ( !scriptFolder.exists() && !scriptFolder.mkdirs() )
         {
@@ -52,19 +49,19 @@ public class ScriptCommand implements CommandExecutor
         }
     }
 
-    public static boolean isEnabled(User user)
+    public static boolean isEnabled(CommandSender sender)
     {
-        return enabledUsers.contains(user.getName());
+        return enabledUsers.contains(sender instanceof IrcCommandSender ? "IRC_" + sender.getName() : sender.getName());
     }
 
-    public static void enable(User user)
+    public static void enable(CommandSender sender)
     {
-        enabledUsers.add(user.getName());
+        enabledUsers.add(sender instanceof IrcCommandSender ? "IRC_" + sender.getName() : sender.getName());
     }
 
-    public static void disable(User user)
+    public static void disable(CommandSender sender)
     {
-        enabledUsers.remove(user.getName());
+        enabledUsers.remove(sender instanceof IrcCommandSender ? "IRC_" + sender.getName() : sender.getName());
     }
 
     static String formatCode(String code)
@@ -143,7 +140,7 @@ public class ScriptCommand implements CommandExecutor
 
         boolean stringStart = false;
 
-        //Set String colro
+        //Set String color
         String tmp = "";
         for ( char Char : code.toCharArray() )
         {
@@ -172,12 +169,12 @@ public class ScriptCommand implements CommandExecutor
         return tmp;
     }
 
-    static void sendErrorMessage(User user, String message)
+    static void sendErrorMessage(CommandSender sender, String message)
     {
-        user.sendMessage(ChatColor.DARK_RED + "Exception: " + ChatColor.RED + message);
+        sender.sendMessage(ChatColor.DARK_RED + "Exception: " + ChatColor.RED + message);
     }
 
-    public static void executeScript(final User user, final String line, final Plugin plugin)
+    public static void executeScript(final CommandSender sender, final String line, final Plugin plugin)
     {
         Bukkit.getScheduler().runTask(plugin, new Runnable()
         {
@@ -187,18 +184,19 @@ public class ScriptCommand implements CommandExecutor
             public void run()
             {
                 String currentLine = line;
-                String name = user.getName();
+                String name = sender.getName();
                 GroovyShell shellInstance;
                 String[] args = currentLine.split(" ");
 
                 if ( !shellInstances.containsKey(name) )
                 {
-                    SinkLibrary.getCustomLogger().log(Level.INFO, "Initializing ShellInstance for " + user.getName());
+                    SinkLibrary.getCustomLogger().log(Level.INFO, "Initializing ShellInstance for " + sender.getName());
                     shellInstance = new GroovyShell();
                     //Constant variables, they won't change
-                    shellInstance.setVariable("me", user);
+                    shellInstance.setVariable("me", SinkLibrary.getUser(sender));
                     shellInstance.setVariable("plugin", plugin);
-                    shellInstance.setVariable("player", user.getPlayer());
+                    if(sender instanceof Player )
+                        shellInstance.setVariable("player", (Player) sender);
                     shellInstance.setVariable("server", Bukkit.getServer());
                     shellInstances.put(name, shellInstance);
                 }
@@ -241,19 +239,19 @@ public class ScriptCommand implements CommandExecutor
                 }
 
                 String mode = args[0].toLowerCase();
-                user.sendDebugMessage(ChatColor.GOLD + "Script mode: " + ChatColor.RED + mode);
+                SinkLibrary.getUser(sender).sendDebugMessage(ChatColor.GOLD + "Script mode: " + ChatColor.RED + mode);
 
                 switch ( mode )
                 {
                     case ".help":
-                        user.sendMessage(ChatColor.GREEN + "[Help] " + ChatColor.GRAY + "Available Commands: .help, .load <file>, " +
+                        sender.sendMessage(ChatColor.GREEN + "[Help] " + ChatColor.GRAY + "Available Commands: .help, .load <file>, " +
                                 ".save <file>, .execute [file], .setvariable <name> <value>, .history, .clear");
                         break;
 
                     case ".clear":
                         codeInstances.remove(name);
                         updateImports(name, "");
-                        user.sendMessage(ChatColor.DARK_RED + "History cleared");
+                        sender.sendMessage(ChatColor.DARK_RED + "History cleared");
                         break;
 
                     case ".setvariable":
@@ -271,7 +269,7 @@ public class ScriptCommand implements CommandExecutor
                         }
                         catch ( Exception e )
                         {
-                            sendErrorMessage(user, e.getMessage());
+                            sendErrorMessage(sender, e.getMessage());
                         }
                         break;
 
@@ -279,7 +277,7 @@ public class ScriptCommand implements CommandExecutor
                     {
                         if ( args.length < 2 )
                         {
-                            user.sendMessage(ChatColor.DARK_RED + "Too few arguments! .load <File>");
+                            sender.sendMessage(ChatColor.DARK_RED + "Too few arguments! .load <File>");
                             break;
                         }
                         updateImports(name, "");
@@ -291,15 +289,15 @@ public class ScriptCommand implements CommandExecutor
                         }
                         catch ( FileNotFoundException ignored )
                         {
-                            user.sendMessage(ChatColor.DARK_RED + "File doesn't exists!");
+                            sender.sendMessage(ChatColor.DARK_RED + "File doesn't exists!");
                             break;
                         }
                         catch ( Exception e )
                         {
-                            user.sendMessage(ChatColor.DARK_RED + "Exception: " + ChatColor.RED + e.getMessage());
+                            sender.sendMessage(ChatColor.DARK_RED + "Exception: " + ChatColor.RED + e.getMessage());
                             break;
                         }
-                        user.sendMessage(ChatColor.DARK_GREEN + "File loaded");
+                        sender.sendMessage(ChatColor.DARK_GREEN + "File loaded");
                         break;
                     }
 
@@ -307,14 +305,14 @@ public class ScriptCommand implements CommandExecutor
                         updateImports(name, code);
                         if ( args.length < 2 )
                         {
-                            user.sendMessage(ChatColor.DARK_RED + "Too few arguments! .save <File>");
+                            sender.sendMessage(ChatColor.DARK_RED + "Too few arguments! .save <File>");
                             break;
                         }
                         String scriptName = args[1];
                         File scriptFile = new File(scriptFolder, scriptName + ".groovy");
                         if ( scriptFile.exists() )
                         {
-                            user.sendMessage(ChatColor.DARK_RED + "File already exists!");
+                            sender.sendMessage(ChatColor.DARK_RED + "File already exists!");
                             break;
                         }
                         PrintWriter writer;
@@ -324,29 +322,30 @@ public class ScriptCommand implements CommandExecutor
                         }
                         catch ( Exception e )
                         {
-                            user.sendMessage(ChatColor.DARK_RED + "Exception: " + ChatColor.RED + e.getMessage());
+                            sender.sendMessage(ChatColor.DARK_RED + "Exception: " + ChatColor.RED + e.getMessage());
                             break;
                         }
                         writer.write(code);
                         writer.close();
-                        user.sendMessage(ChatColor.DARK_GREEN + "Code saved!");
+                        sender.sendMessage(ChatColor.DARK_GREEN + "Code saved!");
                         break;
 
                     case ".execute":
                         updateImports(name, code);
 
-                        if ( user.isOnline() && !user.isConsole() )
+                        if ( sender instanceof Player)
                         {
-                            BlockIterator iterator = new BlockIterator(user.getPlayer());
+                            Player player = (Player) sender;
+                            BlockIterator iterator = new BlockIterator(player);
                             shellInstance.setVariable("at", iterator.next());
-                            shellInstance.setVariable("x", user.getPlayer().getLocation().getX());
-                            shellInstance.setVariable("y", user.getPlayer().getLocation().getY());
-                            shellInstance.setVariable("z", user.getPlayer().getLocation().getZ());
+                            shellInstance.setVariable("x", player.getLocation().getX());
+                            shellInstance.setVariable("y", player.getLocation().getY());
+                            shellInstance.setVariable("z", player.getLocation().getZ());
                         }
 
                         try
                         {
-                            SinkLibrary.getCustomLogger().logToFile(Level.INFO, user.getName() + " executed script: " + nl + code);
+                            SinkLibrary.getCustomLogger().logToFile(Level.INFO, sender.getName() + " executed script: " + nl + code);
                             if ( args.length >= 2 )
                             {
                                 code = loadFile(args[1]);
@@ -354,30 +353,30 @@ public class ScriptCommand implements CommandExecutor
                             String result = String.valueOf(shellInstance.evaluate(code));
 
                             if ( result != null && !result.isEmpty() && !result.equals("null") )
-                                user.sendMessage(ChatColor.AQUA + "Output: " + ChatColor.GREEN + formatCode(result));
-                            else user.sendMessage(ChatColor.GREEN + "Code executed!");
+                                sender.sendMessage(ChatColor.AQUA + "Output: " + ChatColor.GREEN + formatCode(result));
+                            else sender.sendMessage(ChatColor.GREEN + "Code executed!");
                         }
                         catch ( Exception e )
                         {
-                            sendErrorMessage(user, e.getMessage());
+                            sendErrorMessage(sender, e.getMessage());
                         }
                         break;
 
                     case ".history":
                         updateImports(name, code);
-                        user.sendMessage(ChatColor.GOLD + "-------|History|-------");
-                        user.sendMessage(ChatColor.WHITE + formatCode(code));
-                        user.sendMessage(ChatColor.GOLD + "-----------------------");
+                        sender.sendMessage(ChatColor.GOLD + "-------|History|-------");
+                        sender.sendMessage(ChatColor.WHITE + formatCode(code));
+                        sender.sendMessage(ChatColor.GOLD + "-----------------------");
                         break;
 
                     default:
                         updateImports(name, code);
                         if ( mode.startsWith(".") )
                         {
-                            user.sendMessage('"' + mode + "\" is not a valid command");
+                            sender.sendMessage('"' + mode + "\" is not a valid command");
                             break;
                         }
-                        user.sendMessage(ChatColor.DARK_GREEN + "[Input] " + ChatColor.WHITE + formatCode(currentLine));
+                        sender.sendMessage(ChatColor.DARK_GREEN + "[Input] " + ChatColor.WHITE + formatCode(currentLine));
                         break;
                 }
             }
@@ -408,7 +407,8 @@ public class ScriptCommand implements CommandExecutor
     static void updateImports(String name, String code)
     {
         String nl = System.getProperty("line.separator");
-        String defaultImports = "import de.static_interface.sinklibrary.*;" + nl +
+        String defaultImports =
+                "import de.static_interface.sinklibrary.*;" + nl +
                 "import org.bukkit.block.*;" + nl +
                 "import org.bukkit.entity.*;" + nl +
                 "import org.bukkit.inventory.*;" + nl +
@@ -421,13 +421,18 @@ public class ScriptCommand implements CommandExecutor
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
+    public boolean isIrcOpOnly()
     {
-        User user = SinkLibrary.getUser(sender);
-        if ( isEnabled(user) )
+        return true;
+    }
+
+    @Override
+    public boolean onExecute(CommandSender sender, String label, String[] args)
+    {
+        if ( isEnabled(sender) )
         {
-            disable(user);
-            user.sendMessage(ChatColor.DARK_RED + "Disabled Interactive Groovy Console");
+            disable(sender);
+            sender.sendMessage(ChatColor.DARK_RED + "Disabled Interactive Groovy Console");
             return true;
         }
 
@@ -438,11 +443,11 @@ public class ScriptCommand implements CommandExecutor
             {
                 currentLine += arg + ' ';
             }
-            executeScript(SinkLibrary.getUser(sender), currentLine, plugin);
+            executeScript(sender, currentLine, plugin);
             return true;
         }
-        enable(user);
-        user.sendMessage(ChatColor.DARK_GREEN + "Enabled Interactive Groovy Console");
+        enable(sender);
+        sender.sendMessage(ChatColor.DARK_GREEN + "Enabled Interactive Groovy Console");
         return true;
     }
 }
