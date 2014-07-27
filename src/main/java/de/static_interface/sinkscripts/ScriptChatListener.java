@@ -27,6 +27,8 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 
+import java.lang.reflect.Method;
+
 public class ScriptChatListener implements Listener
 {
     Plugin plugin;
@@ -49,12 +51,14 @@ public class ScriptChatListener implements Listener
     public void onIrcMessage(IrcReceiveMessageEvent event)
     {
         IrcCommandSender sender = new IrcCommandSender(event.getUser(), event.getChannel().getName());
-        if (!ScriptCommand.isEnabled(sender))
+        if ( !ScriptCommand.isEnabled(sender) )
         {
             return;
         }
 
         String currentLine = event.getMessage();
+        String ircCommandPrefix = getIrcCommandPrefix();
+        if(currentLine.startsWith(ircCommandPrefix)) return;
         ScriptCommand.executeScript(sender, currentLine, plugin);
     }
 
@@ -67,6 +71,24 @@ public class ScriptChatListener implements Listener
         {
             ScriptCommand.shellInstances.get(name).getClassLoader().clearCache();
             ScriptCommand.shellInstances.remove(name);
+        }
+    }
+
+    public String getIrcCommandPrefix()
+    {
+        try
+        {
+            Class<?> c = Class.forName("de.static_interface.sinkirc.IrcUtil");
+            Method method = c.getMethod("getCommandPrefix", null);
+            if ( !method.isAccessible() )
+            {
+                method.setAccessible(true);
+            }
+            return (String) method.invoke(null);
+        }
+        catch(Exception e)
+        {
+            throw new AssertionError(e);
         }
     }
 }
