@@ -17,8 +17,9 @@
 
 package de.static_interface.sinkscripts;
 
+import de.static_interface.sinklibrary.events.IrcReceiveMessageEvent;
+import de.static_interface.sinklibrary.irc.IrcCommandSender;
 import de.static_interface.sinkscripts.commands.ScriptCommand;
-import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -40,8 +41,21 @@ public class ScriptChatListener implements Listener
     {
         if ( !ScriptCommand.isEnabled(event.getPlayer()) ) return;
         event.setCancelled(true);
-        String currentLine = ChatColor.stripColor(event.getMessage());
+        String currentLine = event.getMessage();
         ScriptCommand.executeScript(event.getPlayer(), currentLine, plugin);
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onIrcMessage(IrcReceiveMessageEvent event)
+    {
+        IrcCommandSender sender = new IrcCommandSender(event.getUser(), event.getChannel().getName());
+        if (!ScriptCommand.isEnabled(sender))
+        {
+            return;
+        }
+
+        String currentLine = event.getMessage();
+        ScriptCommand.executeScript(sender, currentLine, plugin);
     }
 
     @EventHandler(ignoreCancelled = true)
