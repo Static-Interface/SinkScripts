@@ -312,7 +312,7 @@ public class ScriptCommand extends Command
                         File scriptFile = new File(scriptFolder, scriptName + ".groovy");
                         if ( scriptFile.exists() )
                         {
-                            sender.sendMessage(ChatColor.DARK_RED + "File already exists!");
+                            scriptFile.delete();
                             break;
                         }
                         PrintWriter writer;
