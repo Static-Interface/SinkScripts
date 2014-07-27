@@ -53,6 +53,14 @@
             <id>bukkit-repo</id>
             <url>http://repo.bukkit.org/content/repositories/snapshots/</url>
         </repository>
+        <repository>
+            <id>sink-plugins-repo</id>
+            <url>https://raw.github.com/Adventuria/Sink-Plugins/mvn-repo/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
     </repositories>
 
     <dependencies>
