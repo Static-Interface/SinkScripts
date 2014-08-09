@@ -217,9 +217,11 @@ public class ScriptCommand extends Command
         return tmp;
     }
 
-    static void sendErrorMessage(CommandSender sender, String message)
+    static void sendErrorMessage(CommandSender sender, Exception e)
     {
-        sender.sendMessage(ChatColor.DARK_RED + "Unhandled exception: " + ChatColor.RED + message);
+        sender.sendMessage(ChatColor.DARK_RED + "Unhandled exception: ");
+        sender.sendMessage(ChatColor.RED + e.getClass().getCanonicalName() + ": " + e.getLocalizedMessage());
+        if (e.getCause() != null) sender.sendMessage(ChatColor.RED + "Caused by: " + e.getCause().getClass().getCanonicalName() + ": " + e.getCause().getLocalizedMessage());
     }
 
     public static void executeScript(final CommandSender sender, final String line, final Plugin plugin)
@@ -318,7 +320,7 @@ public class ScriptCommand extends Command
                         }
                         catch ( Exception e )
                         {
-                            sendErrorMessage(sender, e.getMessage() + " " + e.getCause().getMessage());
+                            sendErrorMessage(sender, e);
                         }
                         break;
 
@@ -407,7 +409,7 @@ public class ScriptCommand extends Command
                         }
                         catch ( Exception e )
                         {
-                            sendErrorMessage(sender, e.getMessage() + " " + e.getCause().getMessage());
+                            sendErrorMessage(sender,  e);
                         }
                         break;
 
