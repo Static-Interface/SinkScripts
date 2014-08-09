@@ -410,7 +410,6 @@ public class ScriptCommand extends Command
 
                             if ( result != null && !result.isEmpty() && !result.equals("null") )
                                 sender.sendMessage(ChatColor.AQUA + "Output: " + ChatColor.GREEN + formatCode(result));
-                            else sender.sendMessage(ChatColor.GREEN + "Code executed!");
                         }
                         catch ( Exception e )
                         {
@@ -439,7 +438,7 @@ public class ScriptCommand extends Command
         };
 
         if(async)
-            Bukkit.getScheduler().runTaskAsynchronously(plugin, runnable);
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, runnable); // use tasks instead of because bukkit can handle them
         else
             Bukkit.getScheduler().runTask(plugin, runnable);
     }
