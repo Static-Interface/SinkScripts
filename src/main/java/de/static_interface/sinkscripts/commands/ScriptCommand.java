@@ -220,8 +220,13 @@ public class ScriptCommand extends Command
     static void sendErrorMessage(CommandSender sender, Exception e)
     {
         sender.sendMessage(ChatColor.DARK_RED + "Unhandled exception: ");
-        sender.sendMessage(ChatColor.RED + e.getClass().getCanonicalName() + ": " + e.getLocalizedMessage());
-        if (e.getCause() != null) sender.sendMessage(ChatColor.RED + "Caused by: " + e.getCause().getClass().getCanonicalName() + ": " + e.getCause().getLocalizedMessage());
+        String msg = e.getLocalizedMessage();
+        sender.sendMessage(ChatColor.RED + e.getClass().getCanonicalName() + (msg == null ? "" : ": " + msg));
+        if (e.getCause() != null)
+        {
+            msg = e.getCause().getLocalizedMessage();
+            sender.sendMessage(ChatColor.RED + "Caused by: " + e.getCause().getClass().getCanonicalName() + (msg == null ? "" : ": " + msg));
+        }
     }
 
     public static void executeScript(final CommandSender sender, final String line, final Plugin plugin)
@@ -397,7 +402,7 @@ public class ScriptCommand extends Command
                         try
                         {
                             SinkLibrary.getCustomLogger().logToFile(Level.INFO, sender.getName() + " executed script: " + nl + code);
-                            if ( args.length >= 2 )
+                            if ( args.length >= 2 && !args[1].equals("--async") )
                             {
                                 code = loadFile(args[1]);
                             }
@@ -445,7 +450,7 @@ public class ScriptCommand extends Command
         File scriptFile = new File(scriptFolder, scriptName + ".groovy");
         if ( !scriptFile.exists() )
         {
-            throw new FileNotFoundException();
+            throw new FileNotFoundException("Couldn't find file: " + scriptName + ".groovy!");
         }
         BufferedReader br = new BufferedReader(new FileReader(scriptFile));
         StringBuilder sb = new StringBuilder();
