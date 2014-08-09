@@ -219,7 +219,7 @@ public class ScriptCommand extends Command
 
     static void sendErrorMessage(CommandSender sender, String message)
     {
-        sender.sendMessage(ChatColor.DARK_RED + "Exception: " + ChatColor.RED + message);
+        sender.sendMessage(ChatColor.DARK_RED + "Unhandled exception: " + ChatColor.RED + message);
     }
 
     public static void executeScript(final CommandSender sender, final String line, final Plugin plugin)
@@ -318,7 +318,7 @@ public class ScriptCommand extends Command
                         }
                         catch ( Exception e )
                         {
-                            sendErrorMessage(sender, e.getMessage());
+                            sendErrorMessage(sender, e.getMessage() + " " + e.getCause().getMessage());
                         }
                         break;
 
@@ -407,7 +407,7 @@ public class ScriptCommand extends Command
                         }
                         catch ( Exception e )
                         {
-                            sendErrorMessage(sender, e.getMessage());
+                            sendErrorMessage(sender, e.getMessage() + " " + e.getCause().getMessage());
                         }
                         break;
 
