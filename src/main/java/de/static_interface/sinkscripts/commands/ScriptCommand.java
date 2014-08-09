@@ -71,80 +71,127 @@ public class ScriptCommand extends Command
         ChatColor classColor = ChatColor.BLUE;
         ChatColor stringColor = ChatColor.RED;
 
-        code = code.replace("import", ChatColor.GOLD + "import" + codeColor);
-        code = code.replace("package", ChatColor.GOLD + "package" + codeColor);
+        HashMap<String, ChatColor> syntaxColors = new HashMap<>();
+        syntaxColors.put("import", ChatColor.GOLD);
+        syntaxColors.put("package", ChatColor.GOLD);
 
-        code = code.replace("class", defaultColor + "class" + codeColor);
-        code = code.replace("implements", defaultColor + "implements" + codeColor);
-        code = code.replace("extends", defaultColor + "extends" + codeColor);
-        code = code.replace("enum", defaultColor + "enum" + codeColor);
-        code = code.replace("interface", defaultColor + "interface" + codeColor);
+        syntaxColors.put("class", defaultColor);
+        syntaxColors.put("implements", defaultColor);
+        syntaxColors.put("extends", defaultColor);
+        syntaxColors.put("enum", defaultColor);
+        syntaxColors.put("interface", defaultColor);
 
-        code = code.replace("private", defaultColor + "private" + codeColor);
-        code = code.replace("public", defaultColor + "public" + codeColor);
-        code = code.replace("protected", defaultColor + "protected" + codeColor);
+        syntaxColors.put("public", defaultColor);
+        syntaxColors.put("private", defaultColor);
+        syntaxColors.put("protected", defaultColor);
 
-        code = code.replace("final", defaultColor + "final" + codeColor);
-        code = code.replace("static", defaultColor + "static" + codeColor);
-        code = code.replace("native", defaultColor + "native" + codeColor);
-        code = code.replace("throws", defaultColor + "throws" + codeColor);
-        code = code.replace("transient", defaultColor + "transient" + codeColor);
-        code = code.replace("volatile", defaultColor + "volatile" + codeColor);
-        code = code.replace("synchronized", defaultColor + "synchronized" + codeColor);
-        code = code.replace("strictfp", defaultColor + "strictfp" + codeColor);
-        code = code.replace("const", defaultColor + "const" + codeColor);
+        syntaxColors.put("final", defaultColor);
+        syntaxColors.put("static", defaultColor);
+        syntaxColors.put("native", defaultColor);
+        syntaxColors.put("throws", defaultColor);
+        syntaxColors.put("transient", defaultColor);
+        syntaxColors.put("volatile", defaultColor);
+        syntaxColors.put("synchronized", defaultColor);
+        syntaxColors.put("strictfp", defaultColor);
+        syntaxColors.put("const", defaultColor);
 
-        code = code.replace("try", defaultColor + "try" + codeColor);
-        code = code.replace("catch", defaultColor + "catch" + codeColor);
-        code = code.replace("finally", defaultColor + "finally" + codeColor);
-        code = code.replace("throw", defaultColor + "throw" + codeColor);
+        syntaxColors.put("try", defaultColor);
+        syntaxColors.put("catch", defaultColor);
+        syntaxColors.put("finally", defaultColor);
+        syntaxColors.put("throw", defaultColor);
 
-        code = code.replace("while", defaultColor + "while" + codeColor);
-        code = code.replace("continue", defaultColor + "continue" + codeColor);
+        syntaxColors.put("for", defaultColor);
+        syntaxColors.put("while", defaultColor);
+        syntaxColors.put("continue", defaultColor);
 
-        code = code.replace("void", defaultColor + "void" + codeColor);
-        code = code.replace("return", defaultColor + "return" + codeColor);
-        code = code.replace("switch", defaultColor + "switch" + codeColor);
-        code = code.replace("case", defaultColor + "case" + codeColor);
-        code = code.replace("break", defaultColor + "break" + codeColor);
-        code = code.replace("super", defaultColor + "super" + codeColor);
-        code = code.replace("new", defaultColor + "new" + codeColor);
-        code = code.replace("this", defaultColor + "this" + codeColor);
-        code = code.replace("goto", defaultColor + "goto" + codeColor);
+        syntaxColors.put("void", defaultColor);
+        syntaxColors.put("return", defaultColor);
+        syntaxColors.put("switch", defaultColor);
+        syntaxColors.put("case", defaultColor);
+        syntaxColors.put("default", defaultColor);
+        syntaxColors.put("super", defaultColor);
+        syntaxColors.put("new", defaultColor);
+        syntaxColors.put("this", defaultColor);
+        syntaxColors.put("goto", defaultColor);
 
-        code = code.replace("if", defaultColor + "if" + codeColor);
-        code = code.replace("else", defaultColor + "else" + codeColor);
-        code = code.replace("true", defaultColor + "true" + codeColor);
-        code = code.replace("false", defaultColor + "false" + codeColor);
-        code = code.replace("instanceof", defaultColor + "instanceof" + codeColor);
-        code = code.replace("for", defaultColor + "for" + codeColor);
-        code = code.replace("while", defaultColor + "while" + codeColor);
-        code = code.replace("assert", defaultColor + "assert" + codeColor);
+        syntaxColors.put("if", defaultColor);
+        syntaxColors.put("else", defaultColor);
+        syntaxColors.put("instanceof", defaultColor);
+        syntaxColors.put("assert", defaultColor);
 
-        code = code.replace("String", classColor + "String" + codeColor);
-        code = code.replace("Bukkit", classColor + "Bukkit" + codeColor);
-        code = code.replace("BukkitUtil", classColor + "BukkitUtil" + codeColor);
-        code = code.replace("SinkLibrary", classColor + "SinkLibrary" + codeColor);
-        code = code.replace("User", classColor + "User" + codeColor);
-        code = code.replace("Logger", classColor + "Logger" + codeColor);
-        code = code.replace("Player", classColor + "Player" + codeColor);
-        code = code.replace("Plugin", classColor + "Plugin" + codeColor);
+        syntaxColors.put("true", ChatColor.GOLD);
+        syntaxColors.put("false", ChatColor.GOLD);
 
-        code = code.replace("int", defaultColor + "int" + codeColor);
-        code = code.replace("boolean", defaultColor + "boolean" + codeColor);
-        code = code.replace("long", defaultColor + "long" + codeColor);
-        code = code.replace("short", defaultColor + "short" + codeColor);
-        code = code.replace("float", defaultColor + "float" + codeColor);
-        code = code.replace("byte", defaultColor + "byte" + codeColor);
-        code = code.replace("char", defaultColor + "char" + codeColor);
+        for(String keyWord : syntaxColors.keySet())
+        {
+            ChatColor color = syntaxColors.get(keyWord);
+            code = code.replace(" " + keyWord + " ", color + keyWord + ChatColor.RESET);
+            code = code.replace(" " + keyWord, color + keyWord + ChatColor.RESET);
+            code = code.replace(keyWord + " ", color + keyWord + ChatColor.RESET);
+        }
+
+        /* Todo: dont hardcode classes :(
+        syntaxColors.put("String", classColor);
+        syntaxColors.put("Bukkit", classColor);
+        syntaxColors.put("BukkitUtil", classColor);
+        syntaxColors.put("SinkLibrary", classColor);
+        syntaxColors.put("User", classColor);
+        syntaxColors.put("Logger", classColor);
+        syntaxColors.put("Player", classColor);
+        syntaxColors.put("Plugin", classColor);
+        */
+
+        syntaxColors.put("int", defaultColor);
+        syntaxColors.put("boolean", defaultColor);
+        syntaxColors.put("long", defaultColor);
+        syntaxColors.put("short", defaultColor);
+        syntaxColors.put("float", defaultColor);
+        syntaxColors.put("byte", defaultColor);
+        syntaxColors.put("char", defaultColor);
+
+        //Set class color, its not the best solution, because variables may also start with an uppercase name
+        boolean classStart = false;
+        boolean isString = false;
+        char lastChar = 0;
+        String tmp = "";
+        for(char Char : code.toCharArray())
+        {
+            if(Char == '"' && lastChar != '\\')
+            {
+                isString = !isString;
+            }
+            if(!isString && ( !Character.isAlphabetic(lastChar) || lastChar == 0) && Character.isUpperCase(Char) && !classStart)
+            {
+                classStart = true;
+            }
+
+            if(!classStart || isString)
+            {
+                tmp += Char;
+                continue;
+            }
+
+            if(!Character.isAlphabetic(Char))//if(Char == '.' || Char == ' ' || Char == ';' || Char == '+' || Char == '-' || Char == '*' || Char == ':' || Char == '/')
+            {
+                classStart = false;
+                tmp += ChatColor.RESET + "" + Char;
+                continue;
+            }
+
+            tmp += classColor + "" + Char;
+            lastChar = Char;
+        }
+
+        code = tmp;
+        tmp = "";
+        lastChar = 0;
 
         boolean stringStart = false;
 
         //Set String color
-        String tmp = "";
         for ( char Char : code.toCharArray() )
         {
-            if ( Char == '"' )
+            if ( Char == '"' && lastChar != '\\')
             {
                 if ( !stringStart )
                 {
@@ -164,6 +211,7 @@ public class ScriptCommand extends Command
             {
                 tmp += Char;
             }
+            lastChar = Char;
         }
 
         return tmp;
@@ -176,7 +224,9 @@ public class ScriptCommand extends Command
 
     public static void executeScript(final CommandSender sender, final String line, final Plugin plugin)
     {
-        Bukkit.getScheduler().runTask(plugin, new Runnable()
+        boolean async = line.contains(".execute") && line.contains(" --async"); // bad :(
+
+        Runnable runnable = new Runnable()
         {
             String nl = System.getProperty("line.separator");
             String code = "";
@@ -195,8 +245,7 @@ public class ScriptCommand extends Command
                     //Constant variables, they won't change
                     shellInstance.setVariable("me", SinkLibrary.getUser(sender));
                     shellInstance.setVariable("plugin", plugin);
-                    if(sender instanceof Player )
-                        shellInstance.setVariable("player", (Player) sender);
+                    if ( sender instanceof Player ) shellInstance.setVariable("player", (Player) sender);
                     shellInstance.setVariable("server", Bukkit.getServer());
                     shellInstances.put(name, shellInstance);
                 }
@@ -333,7 +382,7 @@ public class ScriptCommand extends Command
                     case ".execute":
                         updateImports(name, code);
 
-                        if ( sender instanceof Player)
+                        if ( sender instanceof Player )
                         {
                             Player player = (Player) sender;
                             BlockIterator iterator = new BlockIterator(player);
@@ -380,7 +429,12 @@ public class ScriptCommand extends Command
                         break;
                 }
             }
-        });
+        };
+
+        if(async)
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, runnable);
+        else
+            Bukkit.getScheduler().runTask(plugin, runnable);
     }
 
     static String loadFile(String scriptName) throws IOException
@@ -446,6 +500,7 @@ public class ScriptCommand extends Command
             executeScript(sender, currentLine, plugin);
             return true;
         }
+
         enable(sender);
         sender.sendMessage(ChatColor.DARK_GREEN + "Enabled Interactive Groovy Console");
         return true;
