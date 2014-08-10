@@ -199,7 +199,7 @@ public class Script
                         File scriptFile = new File(SCRIPTS_FOLDER, scriptName + ".groovy");
                         if ( scriptFile.exists() )
                         {
-                            scriptFile.delete();
+                            if(!scriptFile.delete()) throw new RuntimeException("Couldn't override " + scriptFile + " (delete() failed)!");
                             break;
                         }
                         PrintWriter writer;
