@@ -23,6 +23,7 @@ import groovy.lang.GroovyShell;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.BlockIterator;
@@ -68,7 +69,11 @@ public class Script
                 GroovyShell shellInstance;
                 String[] args = currentLine.split(" ");
 
-                if ( !shellInstances.containsKey(name) )
+                if(sender instanceof ConsoleCommandSender)
+                {
+                    shellInstance = SinkScripts.getConsoleShellInstance();
+                }
+                else if ( !shellInstances.containsKey(name) )
                 {
                     SinkLibrary.getCustomLogger().log(Level.INFO, "Initializing ShellInstance for " + sender.getName());
                     shellInstance = new GroovyShell();
@@ -232,7 +237,7 @@ public class Script
                             {
                                 code = loadFile(args[1]);
                             }
-                            String result = String.valueOf(shellInstance.evaluate(code));
+                            String result = String.valueOf(runCode(shellInstance, code));
 
                             if ( result != null && !result.isEmpty() && !result.equals("null") )
                                 sender.sendMessage(ChatColor.AQUA + "Output: " + ChatColor.GREEN + formatCode(result));
@@ -269,13 +274,12 @@ public class Script
             Bukkit.getScheduler().runTask(plugin, runnable);
     }
 
-    private static String loadFile(String scriptName) throws IOException
+    private static String loadFile(File scriptFile) throws IOException
     {
         String nl = System.getProperty("line.separator");
-        File scriptFile = new File(SCRIPTS_FOLDER, scriptName + ".groovy");
         if ( !scriptFile.exists() )
         {
-            throw new FileNotFoundException("Couldn't find file: " + scriptName + ".groovy!");
+            throw new FileNotFoundException("Couldn't find file: " + scriptFile);
         }
         BufferedReader br = new BufferedReader(new FileReader(scriptFile));
         StringBuilder sb = new StringBuilder();
@@ -288,6 +292,34 @@ public class Script
             line = br.readLine();
         }
         return sb.toString();
+    }
+
+    private static String loadFile(String scriptName) throws IOException
+    {
+        File scriptFile = new File(SCRIPTS_FOLDER, scriptName + ".groovy");
+        if(!scriptFile.exists())
+        {
+            scriptFile = searchRecursively(scriptName, SCRIPTS_FOLDER);
+        }
+        return loadFile(scriptFile);
+    }
+
+    private static File searchRecursively(String scriptName, File directory) throws IOException
+    {
+        File[] files = directory.listFiles();
+        if(files == null) return null;
+        for (File file : files)
+        {
+            if (file.isDirectory())
+            {
+                return searchRecursively(scriptName, file);
+            }
+            else
+            {
+                if(file.getName().equals(scriptName + ".groovy")) return file;
+            }
+        }
+        return null;
     }
 
     private static void updateImports(String name, String code)
@@ -470,5 +502,22 @@ public class Script
         }
 
         return tmp;
+    }
+
+    public static Object runCode(GroovyShell shellInstance, String code)
+    {
+        return shellInstance.evaluate(code);
+    }
+
+    public static Object runCode(GroovyShell shellInstance, File file)
+    {
+        try
+        {
+            return shellInstance.evaluate(loadFile(file));
+        }
+        catch ( IOException e )
+        {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -10,7 +10,7 @@ commands:
   script:
     description: Allows to execute groovy scripts
     permission: sinkscript.execute
-    aliases: [exec, execute]
+    usage: "/script <groovy code>"
 
 permissions:
  sinkscript.execute:

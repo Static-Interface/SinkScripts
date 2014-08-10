@@ -20,31 +20,50 @@ package de.static_interface.sinkscripts;
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.exceptions.NotInitializedException;
 import de.static_interface.sinkscripts.commands.ScriptCommand;
+import groovy.lang.GroovyShell;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
 import java.util.logging.Level;
 
 import static de.static_interface.sinkscripts.Script.SCRIPTS_FOLDER;
 
 public class SinkScripts extends JavaPlugin
 {
+    public static final File AUTOSTART_FOLDER = new File(SCRIPTS_FOLDER, "autostart");
+    static GroovyShell consoleShellInstance;
     public void onEnable()
     {
         if ( !checkDependencies() ) return;
 
+        consoleShellInstance = new GroovyShell();
+
         registerCommands();
         registerListeners();
 
-        if ( !SCRIPTS_FOLDER.exists() && !SCRIPTS_FOLDER.mkdirs() )
+        if ( (!SCRIPTS_FOLDER.exists() && !SCRIPTS_FOLDER.mkdirs()) || (!AUTOSTART_FOLDER.exists() && !AUTOSTART_FOLDER.mkdirs()))
         {
-            throw new RuntimeException("Failed to create script folder!");
+            throw new RuntimeException("Failed to create script or autostart folder!");
         }
+
+        loadAutoStart();
     }
 
     private void loadAutoStart()
     {
+        File[] files = AUTOSTART_FOLDER.listFiles();
+        if(files == null) return;
+        for(File file : files)
+        {
+            if(!file.getName().endsWith(".groovy")) continue;
+            Script.runCode(getConsoleShellInstance(), file);
+        }
+    }
 
+    public static GroovyShell getConsoleShellInstance()
+    {
+        return consoleShellInstance;
     }
 
     private boolean checkDependencies()
