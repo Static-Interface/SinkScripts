@@ -25,13 +25,26 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.logging.Level;
 
+import static de.static_interface.sinkscripts.Script.SCRIPTS_FOLDER;
+
 public class SinkScripts extends JavaPlugin
 {
     public void onEnable()
     {
         if ( !checkDependencies() ) return;
+
         registerCommands();
         registerListeners();
+
+        if ( !SCRIPTS_FOLDER.exists() && !SCRIPTS_FOLDER.mkdirs() )
+        {
+            throw new RuntimeException("Failed to create script folder!");
+        }
+    }
+
+    private void loadAutoStart()
+    {
+
     }
 
     private boolean checkDependencies()

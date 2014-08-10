@@ -17,9 +17,9 @@
 
 package de.static_interface.sinkscripts;
 
+import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.events.IrcReceiveMessageEvent;
 import de.static_interface.sinklibrary.irc.IrcCommandSender;
-import de.static_interface.sinkscripts.commands.ScriptCommand;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -41,17 +41,17 @@ public class ScriptChatListener implements Listener
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void handleChatScript(final AsyncPlayerChatEvent event)
     {
-        if ( !ScriptCommand.isEnabled(event.getPlayer()) ) return;
+        if ( !Script.isEnabled(event.getPlayer()) ) return;
         event.setCancelled(true);
         String currentLine = event.getMessage();
-        ScriptCommand.executeScript(event.getPlayer(), currentLine, plugin);
+        Script.executeScript(event.getPlayer(), currentLine, plugin);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onIrcMessage(IrcReceiveMessageEvent event)
+    public void handleIrcMessage(IrcReceiveMessageEvent event)
     {
         IrcCommandSender sender = new IrcCommandSender(event.getUser(), event.getChannel().getName());
-        if ( !ScriptCommand.isEnabled(sender) )
+        if ( !Script.isEnabled(sender) )
         {
             return;
         }
@@ -59,23 +59,24 @@ public class ScriptChatListener implements Listener
         String currentLine = event.getMessage().trim();
         String ircCommandPrefix = getIrcCommandPrefix();
         if(currentLine.startsWith(ircCommandPrefix)) return;
-        ScriptCommand.executeScript(sender, currentLine, plugin);
+        Script.executeScript(sender, currentLine, plugin);
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerQuit(PlayerQuitEvent event)
     {
         String name = event.getPlayer().getName();
-        ScriptCommand.disable(event.getPlayer());
-        if ( ScriptCommand.shellInstances.containsKey(name) )
+        Script.setEnabled(event.getPlayer(), false);
+        if ( Script.shellInstances.containsKey(name) )
         {
-            ScriptCommand.shellInstances.get(name).getClassLoader().clearCache();
-            ScriptCommand.shellInstances.remove(name);
+            Script.shellInstances.get(name).getClassLoader().clearCache();
+            Script.shellInstances.remove(name);
         }
     }
 
-    public String getIrcCommandPrefix()
+    public static String getIrcCommandPrefix()
     {
+        if(!SinkLibrary.ircAvailable) throw new IllegalStateException("SinkIRC is not available!");
         try
         {
             Class<?> c = Class.forName("de.static_interface.sinkirc.IrcUtil");
