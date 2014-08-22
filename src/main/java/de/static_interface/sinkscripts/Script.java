@@ -412,9 +412,9 @@ public class Script
         for(String keyWord : syntaxColors.keySet())
         {
             ChatColor color = syntaxColors.get(keyWord);
-            code = code.replace(" " + keyWord + " ", color + keyWord + ChatColor.RESET);
-            code = code.replace(" " + keyWord, color + keyWord + ChatColor.RESET);
-            code = code.replace(keyWord + " ", color + keyWord + ChatColor.RESET);
+            code = code.replace(" " + keyWord + " ", color + " " + keyWord + " " + ChatColor.RESET);
+            code = code.replace(" " + keyWord, color + " " + keyWord + ChatColor.RESET);
+            code = code.replace(keyWord + " ", color + keyWord + " " + ChatColor.RESET);
         }
 
         /* Todo: dont hardcode classes :(
