@@ -397,9 +397,11 @@ public class Script
         syntaxColors.put("case", defaultColor);
         syntaxColors.put("default", defaultColor);
         syntaxColors.put("super", defaultColor);
+        syntaxColors.put("goto", defaultColor);
+
         syntaxColors.put("new", defaultColor);
         syntaxColors.put("this", defaultColor);
-        syntaxColors.put("goto", defaultColor);
+        syntaxColors.put("null", defaultColor);
 
         syntaxColors.put("if", defaultColor);
         syntaxColors.put("else", defaultColor);
@@ -416,17 +418,6 @@ public class Script
             code = code.replace(" " + keyWord, color + " " + keyWord + ChatColor.RESET);
             code = code.replace(keyWord + " ", color + keyWord + " " + ChatColor.RESET);
         }
-
-        /* Todo: dont hardcode classes :(
-        syntaxColors.put("String", classColor);
-        syntaxColors.put("Bukkit", classColor);
-        syntaxColors.put("BukkitUtil", classColor);
-        syntaxColors.put("SinkLibrary", classColor);
-        syntaxColors.put("User", classColor);
-        syntaxColors.put("Logger", classColor);
-        syntaxColors.put("Player", classColor);
-        syntaxColors.put("Plugin", classColor);
-        */
 
         syntaxColors.put("int", defaultColor);
         syntaxColors.put("boolean", defaultColor);
