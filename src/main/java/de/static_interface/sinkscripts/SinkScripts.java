@@ -31,13 +31,14 @@ import static de.static_interface.sinkscripts.Script.SCRIPTS_FOLDER;
 
 public class SinkScripts extends JavaPlugin
 {
-    public static final File AUTOSTART_FOLDER = new File(SCRIPTS_FOLDER, "autostart");
+    public static File AUTOSTART_FOLDER;
     static GroovyShell consoleShellInstance;
     public void onEnable()
     {
         if ( !checkDependencies() ) return;
 
         consoleShellInstance = new GroovyShell();
+        AUTOSTART_FOLDER = new File(SCRIPTS_FOLDER, "autostart");
 
         registerCommands();
         registerListeners();
