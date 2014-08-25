@@ -20,35 +20,48 @@ package de.static_interface.sinkscripts;
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.exceptions.NotInitializedException;
 import de.static_interface.sinkscripts.commands.ScriptCommand;
-import groovy.lang.GroovyShell;
+import de.static_interface.sinkscripts.scriptengine.GroovyScript;
+import de.static_interface.sinkscripts.scriptengine.ScriptLanguage;
+import de.static_interface.sinkscripts.scriptengine.ShellInstance;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.logging.Level;
-
-import static de.static_interface.sinkscripts.Script.SCRIPTS_FOLDER;
 
 public class SinkScripts extends JavaPlugin
 {
     public static File AUTOSTART_FOLDER;
-    static GroovyShell consoleShellInstance;
+    public static File SCRIPTS_FOLDER;
+    static HashMap<String, ShellInstance> consoleInstances = new HashMap<>();
     public void onEnable()
     {
         if ( !checkDependencies() ) return;
 
-        consoleShellInstance = new GroovyShell();
         AUTOSTART_FOLDER = new File(SCRIPTS_FOLDER, "autostart");
+        SCRIPTS_FOLDER = new File(SinkLibrary.getCustomDataFolder(), "scripts");
 
         registerCommands();
         registerListeners();
+        registerScriptLanguages();
+
+        for(ScriptLanguage language : ScriptUtil.scriptLanguages.values())
+        {
+            consoleInstances.put(language.getFileExtension(), language.getNewShellInstance());
+        }
 
         if ( (!SCRIPTS_FOLDER.exists() && !SCRIPTS_FOLDER.mkdirs()) || (!AUTOSTART_FOLDER.exists() && !AUTOSTART_FOLDER.mkdirs()))
         {
-            throw new RuntimeException("Failed to create script or autostart folder!");
+            SinkLibrary.getCustomLogger().severe("Coudln't create scripts or autostart folder!");
         }
 
         loadAutoStart();
+    }
+
+    private void registerScriptLanguages()
+    {
+        ScriptUtil.register(new GroovyScript(this));
     }
 
     private void loadAutoStart()
@@ -57,14 +70,16 @@ public class SinkScripts extends JavaPlugin
         if(files == null) return;
         for(File file : files)
         {
-            if(!file.getName().endsWith(".groovy")) continue;
-            Script.runCode(getConsoleShellInstance(), file);
+            String ext = ScriptUtil.getFileExtension(file);
+            if(!ScriptUtil.scriptLanguages.containsKey(ext)) continue;
+            ScriptLanguage language = ScriptUtil.scriptLanguages.get(ext);
+            language.runCode(getConsoleShellInstance(language), file);
         }
     }
 
-    public static GroovyShell getConsoleShellInstance()
+    public static ShellInstance getConsoleShellInstance(ScriptLanguage language)
     {
-        return consoleShellInstance;
+        return consoleInstances.get(language.getFileExtension());
     }
 
     private boolean checkDependencies()

@@ -20,6 +20,7 @@ package de.static_interface.sinkscripts;
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.events.IrcReceiveMessageEvent;
 import de.static_interface.sinklibrary.irc.IrcCommandSender;
+import de.static_interface.sinkscripts.scriptengine.ScriptLanguage;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -41,17 +42,17 @@ public class ScriptChatListener implements Listener
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void handleChatScript(final AsyncPlayerChatEvent event)
     {
-        if ( !Script.isEnabled(event.getPlayer()) ) return;
+        if ( !ScriptUtil.isEnabled(event.getPlayer()) ) return;
         event.setCancelled(true);
         String currentLine = event.getMessage();
-        Script.executeScript(event.getPlayer(), currentLine, plugin);
+        ScriptLanguage.executeScript(event.getPlayer(), currentLine, plugin);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void handleIrcMessage(IrcReceiveMessageEvent event)
     {
         IrcCommandSender sender = new IrcCommandSender(event.getUser(), event.getChannel().getName());
-        if ( !Script.isEnabled(sender) )
+        if ( !ScriptUtil.isEnabled(sender) )
         {
             return;
         }
@@ -59,18 +60,18 @@ public class ScriptChatListener implements Listener
         String currentLine = event.getMessage().trim();
         String ircCommandPrefix = getIrcCommandPrefix();
         if(currentLine.startsWith(ircCommandPrefix)) return;
-        Script.executeScript(sender, currentLine, plugin);
+        ScriptLanguage.executeScript(sender, currentLine, plugin);
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerQuit(PlayerQuitEvent event)
     {
-        String name = event.getPlayer().getName();
-        Script.setEnabled(event.getPlayer(), false);
-        if ( Script.shellInstances.containsKey(name) )
+        String name = ScriptUtil.getInternalName(event.getPlayer());
+        ScriptUtil.setEnabled(event.getPlayer(), false);
+        if ( ScriptLanguage.getShellInstances().containsKey(name) )
         {
-            Script.shellInstances.get(name).getClassLoader().clearCache();
-            Script.shellInstances.remove(name);
+            ScriptLanguage.getShellInstances().get(name).clearCache();
+            ScriptLanguage.getShellInstances().remove(name);
         }
     }
 

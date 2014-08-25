@@ -18,7 +18,8 @@
 package de.static_interface.sinkscripts.commands;
 
 import de.static_interface.sinklibrary.commands.Command;
-import de.static_interface.sinkscripts.Script;
+import de.static_interface.sinkscripts.ScriptUtil;
+import de.static_interface.sinkscripts.scriptengine.ScriptLanguage;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -40,9 +41,9 @@ public class ScriptCommand extends Command
     @Override
     public boolean onExecute(CommandSender sender, String label, String[] args)
     {
-        if ( !(sender instanceof ConsoleCommandSender) && Script.isEnabled(sender) )
+        if ( !(sender instanceof ConsoleCommandSender) && ScriptUtil.isEnabled(sender) )
         {
-            Script.setEnabled(sender, false);
+            ScriptUtil.setEnabled(sender, false);
             sender.sendMessage(ChatColor.DARK_RED + "Disabled Interactive Groovy Console");
             return true;
         }
@@ -54,7 +55,7 @@ public class ScriptCommand extends Command
             {
                 currentLine += arg + ' ';
             }
-            Script.executeScript(sender, currentLine, plugin);
+            ScriptLanguage.executeScript(sender, currentLine, plugin);
             return true;
         }
 
@@ -63,7 +64,7 @@ public class ScriptCommand extends Command
             return false;
         }
 
-        Script.setEnabled(sender, true);
+        ScriptUtil.setEnabled(sender, true);
         sender.sendMessage(ChatColor.DARK_GREEN + "Enabled Interactive Groovy Console");
         return true;
     }
