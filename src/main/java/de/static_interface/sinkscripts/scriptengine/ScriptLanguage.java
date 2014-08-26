@@ -29,6 +29,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.util.BlockIterator;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -133,8 +134,13 @@ public abstract class ScriptLanguage
     public static void executeScript(final CommandSender sender, final String line, final Plugin plugin)
     {
         final String name = ScriptUtil.getInternalName(sender);
+        final List<String> availableParamters = new ArrayList<>();
+        availableParamters.add("--async");
+        availableParamters.add("--hideoutput");
+
         boolean isExecute = line.startsWith(".execute");
         boolean async = isExecute && line.contains(" --async"); // bad :(
+        final boolean noOutput = isExecute && (line.contains(" --hideoutput"));
 
         final ScriptLanguage language = getLanguage(sender);
         if(language == null && (!line.startsWith(".setlanguage") && !line.startsWith(".help")))
@@ -361,13 +367,22 @@ public abstract class ScriptLanguage
                             try
                             {
                                 SinkLibrary.getCustomLogger().logToFile(Level.INFO, sender.getName() + " executed script: " + nl + code);
-                                if ( args.length >= 2 && !args[1].equals("--async") )
+                                boolean isParameter = false;
+                                for(String s : availableParamters)
+                                {
+                                    if(s.equals(args[1]))
+                                    {
+                                        isParameter = true;
+                                        break;
+                                    }
+                                }
+                                if ( args.length >= 2 && !isParameter )
                                 {
                                     code = language.loadFile(args[1]);
                                 }
                                 String result = String.valueOf(language.runCode(shellInstance, code));
 
-                                if ( result != null && !result.isEmpty() && !result.equals("null") ) sender.sendMessage(ChatColor.AQUA + "Output: " + ChatColor.GREEN + language.formatCode(result));
+                                if ( !noOutput ) sender.sendMessage(ChatColor.AQUA + "Output: " + ChatColor.GREEN + language.formatCode(result));
                             }
                             catch ( Exception e )
                             {
