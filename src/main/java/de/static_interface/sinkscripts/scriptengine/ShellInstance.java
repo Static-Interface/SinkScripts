@@ -17,10 +17,19 @@
 
 package de.static_interface.sinkscripts.scriptengine;
 
+import org.bukkit.command.CommandSender;
+
 public abstract class ShellInstance
 {
-    protected Object executor;
+    private Object executor;
     protected String code;
+    private CommandSender sender;
+
+    public ShellInstance(CommandSender sender, Object executor)
+    {
+        this.sender = sender;
+        this.executor = executor;
+    }
 
     public Object getExecutor()
     {
@@ -38,4 +47,9 @@ public abstract class ShellInstance
     }
 
     public abstract void clearCache();
+
+    public CommandSender getSender()
+    {
+        return sender;
+    }
 }

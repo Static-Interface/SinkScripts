@@ -17,8 +17,15 @@
 
 package de.static_interface.sinkscripts.scriptengine;
 
+import org.bukkit.command.CommandSender;
+
 public class DummyShellInstance extends ShellInstance
 {
+    public DummyShellInstance(CommandSender sender, Object executor)
+    {
+        super(sender, executor);
+    }
+
     @Override
     public void clearCache()
     {

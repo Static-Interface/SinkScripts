@@ -21,6 +21,7 @@ import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.exceptions.NotInitializedException;
 import de.static_interface.sinkscripts.commands.ScriptCommand;
 import de.static_interface.sinkscripts.scriptengine.GroovyScript;
+import de.static_interface.sinkscripts.scriptengine.JavaScript;
 import de.static_interface.sinkscripts.scriptengine.ScriptLanguage;
 import de.static_interface.sinkscripts.scriptengine.ShellInstance;
 import org.bukkit.Bukkit;
@@ -46,11 +47,6 @@ public class SinkScripts extends JavaPlugin
         registerListeners();
         registerScriptLanguages();
 
-        for(ScriptLanguage language : ScriptUtil.scriptLanguages.values())
-        {
-            consoleInstances.put(language.getFileExtension(), language.getNewShellInstance());
-        }
-
         if ( (!SCRIPTS_FOLDER.exists() && !SCRIPTS_FOLDER.mkdirs()) || (!AUTOSTART_FOLDER.exists() && !AUTOSTART_FOLDER.mkdirs()))
         {
             SinkLibrary.getCustomLogger().severe("Coudln't create scripts or autostart folder!");
@@ -62,6 +58,7 @@ public class SinkScripts extends JavaPlugin
     private void registerScriptLanguages()
     {
         ScriptUtil.register(new GroovyScript(this));
+        ScriptUtil.register(new JavaScript(this));
     }
 
     private void loadAutoStart()
@@ -79,7 +76,13 @@ public class SinkScripts extends JavaPlugin
 
     public static ShellInstance getConsoleShellInstance(ScriptLanguage language)
     {
-        return consoleInstances.get(language.getFileExtension());
+        ShellInstance instance = consoleInstances.get(language.getFileExtension());
+        if(instance == null)
+        {
+            instance = language.createNewShellInstance(Bukkit.getConsoleSender());
+            consoleInstances.put(language.getFileExtension(), instance);
+        }
+        return instance;
     }
 
     private boolean checkDependencies()

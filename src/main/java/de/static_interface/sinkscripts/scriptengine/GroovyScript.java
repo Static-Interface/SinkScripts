@@ -19,17 +19,18 @@ package de.static_interface.sinkscripts.scriptengine;
 
 import groovy.lang.GroovyShell;
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
-import java.io.File;
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class GroovyScript extends ScriptLanguage
 {
     public GroovyScript(Plugin plugin)
     {
-        super(plugin, "groovy");
+        super(plugin, "groovy", "groovy");
     }
 
     @Override
@@ -183,25 +184,11 @@ public class GroovyScript extends ScriptLanguage
         return instance.evaluate(code);
     }
 
-    public Object runCode(ShellInstance shellInstance, File file)
-    {
-        GroovyShell instance = (GroovyShell) shellInstance.getExecutor();
-        try
-        {
-            return instance.evaluate(loadFile(file));
-        }
-        catch ( IOException e )
-        {
-            throw new RuntimeException(e);
-        }
-    }
-
     @Override
-    protected void updateImports(String name, String code)
+    protected String getDefaultImports()
     {
         String nl = System.getProperty("line.separator");
-        String defaultImports =
-                "import de.static_interface.sinklibrary.*;" + nl +
+        return  "import de.static_interface.sinklibrary.*;" + nl +
                 "import org.bukkit.block.*;" + nl +
                 "import org.bukkit.entity.*;" + nl +
                 "import org.bukkit.inventory.*;" + nl +
@@ -209,16 +196,13 @@ public class GroovyScript extends ScriptLanguage
                 "import org.bukkit.potion.*; " + nl +
                 "import org.bukkit.util.*" + nl +
                 "import org.bukkit.*;" + nl + nl;
-        code = code.replace(defaultImports, "");
-        shellInstances.get(name).setCode(defaultImports + code);
     }
 
     @Override
-    public ShellInstance getNewShellInstance()
+    public ShellInstance createNewShellInstance(CommandSender sender)
     {
         GroovyShell groovyShell = new GroovyShell();
-        GroovyShellInstance instance = new GroovyShellInstance(groovyShell);
-        return instance;
+        return new GroovyShellInstance(sender, groovyShell);
     }
 
     @Override
@@ -226,5 +210,13 @@ public class GroovyScript extends ScriptLanguage
     {
         GroovyShell shell = (GroovyShell) instance.getExecutor();
         shell.setVariable(name, value);
+    }
+
+    @Override
+    public List<String> getImportIdentifier()
+    {
+        List<String> importIdentifiers = new ArrayList<>();
+        importIdentifiers.add("import");
+        return importIdentifiers;
     }
 }

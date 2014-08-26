@@ -17,21 +17,30 @@
 
 package de.static_interface.sinkscripts.scriptengine;
 
-import groovy.lang.GroovyShell;
 import org.bukkit.command.CommandSender;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Scriptable;
 
-public class GroovyShellInstance extends ShellInstance
+public class JavaScriptShellInstance extends ShellInstance
 {
-    GroovyShell shell;
-    public GroovyShellInstance(CommandSender sender, GroovyShell shell)
+    Context shell;
+    Scriptable scope;
+
+    public JavaScriptShellInstance(CommandSender sender, Context shell, Scriptable scope)
     {
         super(sender, shell);
         this.shell = shell;
+        this.scope = scope;
+    }
+
+    public Scriptable getScope()
+    {
+        return scope;
     }
 
     @Override
     public void clearCache()
     {
-        shell.getClassLoader().clearCache();
+        //?
     }
 }

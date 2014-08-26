@@ -17,6 +17,7 @@
 
 package de.static_interface.sinkscripts;
 
+import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.irc.IrcCommandSender;
 import de.static_interface.sinkscripts.scriptengine.ScriptLanguage;
 import org.bukkit.ChatColor;
@@ -63,6 +64,9 @@ public class ScriptUtil
             sender.sendMessage(ChatColor.RED + "Caused by: " + cause.getClass().getCanonicalName() + (msg == null ? "" : ": " + msg));
             cause = cause.getCause();
         }
+
+        SinkLibrary.getCustomLogger().debug("[SinkScripts] Exception caused by " + sender.getName() + ": ");
+        SinkLibrary.getCustomLogger().debug(e.toString());
     }
 
     public static void register(ScriptLanguage scriptLanguage)
@@ -80,5 +84,10 @@ public class ScriptUtil
         }
 
         return null;
+    }
+
+    public static String getNewLine()
+    {
+        return System.getProperty("line.separator");
     }
 }
