@@ -26,6 +26,7 @@ import de.static_interface.sinkscripts.scriptengine.ScriptLanguage;
 import de.static_interface.sinkscripts.scriptengine.ShellInstance;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.mozilla.javascript.Context;
 
 import java.io.File;
 import java.util.HashMap;
@@ -51,8 +52,12 @@ public class SinkScripts extends JavaPlugin
         {
             SinkLibrary.getCustomLogger().severe("Coudln't create scripts or autostart folder!");
         }
-
         loadAutoStart();
+    }
+
+    public void onDisable()
+    {
+        Context.exit();
     }
 
     private void registerScriptLanguages()
