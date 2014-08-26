@@ -15,9 +15,12 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.static_interface.sinkscripts.scriptengine;
+package de.static_interface.sinkscripts.scriptengine.languages;
 
-import de.static_interface.sinkscripts.ScriptUtil;
+import de.static_interface.sinkscripts.scriptengine.ScriptUtil;
+import de.static_interface.sinkscripts.scriptengine.shellinstances.RhinoJavaScriptShellInstance;
+import de.static_interface.sinkscripts.scriptengine.ScriptLanguage;
+import de.static_interface.sinkscripts.scriptengine.shellinstances.ShellInstance;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
@@ -29,11 +32,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class JavaScript extends ScriptLanguage
+public class RhinoJavaScript extends ScriptLanguage
 {
-    public JavaScript(Plugin plugin)
+    public RhinoJavaScript(Plugin plugin)
     {
-        super(plugin, "javascript", "js");
+        super(plugin, "rhinojavascript", "rjs");
     }
 
     @Override
@@ -199,7 +202,7 @@ public class JavaScript extends ScriptLanguage
     @Override
     public Object runCode(ShellInstance instance, String code)
     {
-        JavaScriptShellInstance jsInstance = (JavaScriptShellInstance) instance;
+        RhinoJavaScriptShellInstance jsInstance = (RhinoJavaScriptShellInstance) instance;
         String tmp= "";
         String out;
         int i = 0;
@@ -234,13 +237,13 @@ public class JavaScript extends ScriptLanguage
     {
         Context cx = Context.enter();
         Scriptable scope = cx.initStandardObjects();
-        return new JavaScriptShellInstance(sender, cx, scope);
+        return new RhinoJavaScriptShellInstance(sender, cx, scope);
     }
 
     @Override
     public void setVariable(ShellInstance instance, String name, Object value)
     {
-        JavaScriptShellInstance jsInstance = (JavaScriptShellInstance) instance;
+        RhinoJavaScriptShellInstance jsInstance = (RhinoJavaScriptShellInstance) instance;
         Scriptable scope = jsInstance.getScope();
         value = Context.javaToJS(value, scope);
         ScriptableObject.putProperty(scope, name, value);

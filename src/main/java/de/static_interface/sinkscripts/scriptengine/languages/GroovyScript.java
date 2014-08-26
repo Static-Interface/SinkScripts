@@ -15,8 +15,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.static_interface.sinkscripts.scriptengine;
+package de.static_interface.sinkscripts.scriptengine.languages;
 
+import de.static_interface.sinkscripts.scriptengine.shellinstances.GroovyShellInstance;
+import de.static_interface.sinkscripts.scriptengine.ScriptLanguage;
+import de.static_interface.sinkscripts.scriptengine.shellinstances.ShellInstance;
 import groovy.lang.GroovyShell;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;

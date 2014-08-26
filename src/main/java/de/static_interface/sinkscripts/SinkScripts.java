@@ -20,10 +20,12 @@ package de.static_interface.sinkscripts;
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.exceptions.NotInitializedException;
 import de.static_interface.sinkscripts.commands.ScriptCommand;
-import de.static_interface.sinkscripts.scriptengine.GroovyScript;
-import de.static_interface.sinkscripts.scriptengine.JavaScript;
 import de.static_interface.sinkscripts.scriptengine.ScriptLanguage;
-import de.static_interface.sinkscripts.scriptengine.ShellInstance;
+import de.static_interface.sinkscripts.scriptengine.ScriptUtil;
+import de.static_interface.sinkscripts.scriptengine.languages.GroovyScript;
+import de.static_interface.sinkscripts.scriptengine.languages.JavaScript;
+import de.static_interface.sinkscripts.scriptengine.languages.RhinoJavaScript;
+import de.static_interface.sinkscripts.scriptengine.shellinstances.ShellInstance;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.mozilla.javascript.Context;
@@ -64,6 +66,7 @@ public class SinkScripts extends JavaPlugin
     {
         ScriptUtil.register(new GroovyScript(this));
         ScriptUtil.register(new JavaScript(this));
+        ScriptUtil.register(new RhinoJavaScript(this));
     }
 
     private void loadAutoStart()

@@ -18,7 +18,7 @@
 package de.static_interface.sinkscripts.commands;
 
 import de.static_interface.sinklibrary.commands.Command;
-import de.static_interface.sinkscripts.ScriptUtil;
+import de.static_interface.sinkscripts.scriptengine.ScriptUtil;
 import de.static_interface.sinkscripts.scriptengine.ScriptLanguage;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;

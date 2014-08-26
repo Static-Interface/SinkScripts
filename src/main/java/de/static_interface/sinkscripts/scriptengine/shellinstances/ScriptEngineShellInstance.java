@@ -15,23 +15,22 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.static_interface.sinkscripts.scriptengine;
+package de.static_interface.sinkscripts.scriptengine.shellinstances;
 
-import groovy.lang.GroovyShell;
 import org.bukkit.command.CommandSender;
 
-public class GroovyShellInstance extends ShellInstance
+import javax.script.ScriptEngine;
+
+public class ScriptEngineShellInstance extends ShellInstance
 {
-    GroovyShell shell;
-    public GroovyShellInstance(CommandSender sender, GroovyShell shell)
+    public ScriptEngineShellInstance(CommandSender sender, ScriptEngine engine)
     {
-        super(sender, shell);
-        this.shell = shell;
+        super(sender, engine);
     }
 
     @Override
     public void clearCache()
     {
-        shell.getClassLoader().clearCache();
+        // do nothing
     }
 }

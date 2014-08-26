@@ -18,8 +18,9 @@
 package de.static_interface.sinkscripts.scriptengine;
 
 import de.static_interface.sinklibrary.SinkLibrary;
-import de.static_interface.sinkscripts.ScriptUtil;
 import de.static_interface.sinkscripts.SinkScripts;
+import de.static_interface.sinkscripts.scriptengine.shellinstances.DummyShellInstance;
+import de.static_interface.sinkscripts.scriptengine.shellinstances.ShellInstance;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -268,17 +269,16 @@ public abstract class ScriptLanguage
                             break;
 
                         case ".setvariable":
-                            if ( args.length < 1 || !currentLine.contains("=") )
-                            {
-                                sender.sendMessage(ChatColor.DARK_RED + "Usage: .setvariable name=value");
-                                break;
-                            }
+                            //if ( args.length < 1 || !currentLine.contains("=") )
+                            //{
+                            //    sender.sendMessage(ChatColor.DARK_RED + "Usage: .setvariable name=value");
+                            //    break;
+                            //}
                             try
                             {
-                                String[] commandArgs = currentLine.split("=");
+                                String[] commandArgs = line.split("=");
                                 String variableName = commandArgs[0].split(" ")[1];
                                 Object value = language.getValue(commandArgs);
-
                                 language.setVariable(shellInstance, variableName, value);
                             }
                             catch ( Exception e )
@@ -368,12 +368,15 @@ public abstract class ScriptLanguage
                             {
                                 SinkLibrary.getCustomLogger().logToFile(Level.INFO, sender.getName() + " executed script: " + nl + code);
                                 boolean isParameter = false;
-                                for(String s : availableParamters)
+                                if(args.length > 1)
                                 {
-                                    if(s.equals(args[1]))
+                                    for ( String s : availableParamters )
                                     {
-                                        isParameter = true;
-                                        break;
+                                        if ( s.equals(args[1]) )
+                                        {
+                                            isParameter = true;
+                                            break;
+                                        }
                                     }
                                 }
                                 if ( args.length >= 2 && !isParameter )

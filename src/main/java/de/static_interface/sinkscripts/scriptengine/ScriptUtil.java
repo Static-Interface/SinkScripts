@@ -15,11 +15,10 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.static_interface.sinkscripts;
+package de.static_interface.sinkscripts.scriptengine;
 
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.irc.IrcCommandSender;
-import de.static_interface.sinkscripts.scriptengine.ScriptLanguage;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 

@@ -15,18 +15,18 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.static_interface.sinkscripts.scriptengine;
+package de.static_interface.sinkscripts.scriptengine.shellinstances;
 
 import org.bukkit.command.CommandSender;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
-public class JavaScriptShellInstance extends ShellInstance
+public class RhinoJavaScriptShellInstance extends ShellInstance
 {
     Context shell;
     Scriptable scope;
 
-    public JavaScriptShellInstance(CommandSender sender, Context shell, Scriptable scope)
+    public RhinoJavaScriptShellInstance(CommandSender sender, Context shell, Scriptable scope)
     {
         super(sender, shell);
         this.shell = shell;
