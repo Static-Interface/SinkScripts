@@ -94,14 +94,6 @@ public class GroovyScript extends ScriptLanguage
         syntaxColors.put("true", ChatColor.GOLD);
         syntaxColors.put("false", ChatColor.GOLD);
 
-        for(String keyWord : syntaxColors.keySet())
-        {
-            ChatColor color = syntaxColors.get(keyWord);
-            code = code.replace(" " + keyWord + " ", color + " " + keyWord + " " + ChatColor.RESET);
-            code = code.replace(" " + keyWord, color + " " + keyWord + ChatColor.RESET);
-            code = code.replace(keyWord + " ", color + keyWord + " " + ChatColor.RESET);
-        }
-
         syntaxColors.put("int", defaultColor);
         syntaxColors.put("boolean", defaultColor);
         syntaxColors.put("long", defaultColor);
@@ -109,6 +101,14 @@ public class GroovyScript extends ScriptLanguage
         syntaxColors.put("float", defaultColor);
         syntaxColors.put("byte", defaultColor);
         syntaxColors.put("char", defaultColor);
+
+        for(String keyWord : syntaxColors.keySet())
+        {
+            ChatColor color = syntaxColors.get(keyWord);
+            code = code.replace(" " + keyWord + " ", color + " " + keyWord + " " + ChatColor.RESET);
+            code = code.replace(" " + keyWord, color + " " + keyWord + ChatColor.RESET);
+            code = code.replace(keyWord + " ", color + keyWord + " " + ChatColor.RESET);
+        }
 
         //Set class color, its not the best solution, because variables may also start with an uppercase name
         boolean classStart = false;
