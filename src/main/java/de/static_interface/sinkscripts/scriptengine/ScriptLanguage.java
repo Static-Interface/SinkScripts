@@ -138,10 +138,11 @@ public abstract class ScriptLanguage
         final List<String> availableParamters = new ArrayList<>();
         availableParamters.add("--async");
         availableParamters.add("--hideoutput");
-
+        availableParamters.add("--clear");
         boolean isExecute = line.startsWith(".execute");
         boolean async = isExecute && line.contains(" --async"); // bad :(
         final boolean noOutput = isExecute && (line.contains(" --hideoutput"));
+        final boolean clear = isExecute && (line.contains("--clear"));
 
         final ScriptLanguage language = getLanguage(sender);
         if(language == null && (!line.startsWith(".setlanguage") && !line.startsWith(".help")))
@@ -386,6 +387,11 @@ public abstract class ScriptLanguage
                                 String result = String.valueOf(language.runCode(shellInstance, code));
 
                                 if ( !noOutput ) sender.sendMessage(ChatColor.AQUA + "Output: " + ChatColor.GREEN + language.formatCode(result));
+
+                                if (clear)
+                                {
+                                    shellInstance.setCode(language.onUpdateImports(""));
+                                }
                             }
                             catch ( Exception e )
                             {
