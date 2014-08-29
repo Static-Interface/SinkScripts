@@ -24,7 +24,7 @@ import de.static_interface.sinkscripts.scriptengine.ScriptLanguage;
 import de.static_interface.sinkscripts.scriptengine.ScriptUtil;
 import de.static_interface.sinkscripts.scriptengine.languages.GroovyScript;
 import de.static_interface.sinkscripts.scriptengine.languages.JavaScript;
-import de.static_interface.sinkscripts.scriptengine.languages.RhinoJavaScript;
+import de.static_interface.sinkscripts.scriptengine.languages.LuaScript;
 import de.static_interface.sinkscripts.scriptengine.shellinstances.ShellInstance;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -66,7 +66,7 @@ public class SinkScripts extends JavaPlugin
     {
         ScriptUtil.register(new GroovyScript(this));
         ScriptUtil.register(new JavaScript(this));
-        ScriptUtil.register(new RhinoJavaScript(this));
+        ScriptUtil.register(new LuaScript(this));
     }
 
     private void loadAutoStart()

@@ -416,7 +416,6 @@ public abstract class ScriptLanguage
                             sender.sendMessage(ChatColor.DARK_GREEN + "[Input] " + ChatColor.WHITE + language.formatCode(currentLine));
                             break;
                     }
-
                     shellInstances.put(name, shellInstance);
                 }
                 catch(Exception e)
