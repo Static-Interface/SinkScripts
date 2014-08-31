@@ -17,6 +17,7 @@
 
 package de.static_interface.sinkscripts.scriptengine.languages;
 
+import de.static_interface.sinkscripts.SinkScripts;
 import de.static_interface.sinkscripts.scriptengine.ScriptLanguage;
 import de.static_interface.sinkscripts.scriptengine.shellinstances.ScriptEngineShellInstance;
 import de.static_interface.sinkscripts.scriptengine.shellinstances.ShellInstance;
@@ -52,7 +53,7 @@ public abstract class ScriptEngineScript extends ScriptLanguage
     @Override
     public ShellInstance createNewShellInstance(CommandSender sender)
     {
-        ScriptEngine e = new ScriptEngineManager().getEngineByName(engineName);
+        ScriptEngine e = new ScriptEngineManager(((SinkScripts)plugin).getPluginClassLoader()).getEngineByName(engineName);
         return new ScriptEngineShellInstance(sender, e);
     }
 

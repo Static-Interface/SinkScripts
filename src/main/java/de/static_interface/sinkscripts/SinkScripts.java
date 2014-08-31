@@ -28,9 +28,11 @@ import de.static_interface.sinkscripts.scriptengine.languages.LuaScript;
 import de.static_interface.sinkscripts.scriptengine.shellinstances.ShellInstance;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.mozilla.javascript.Context;
+import sun.plugin.security.PluginClassLoader;
 
 import java.io.File;
+import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.logging.Level;
 
@@ -38,6 +40,7 @@ public class SinkScripts extends JavaPlugin
 {
     public static File AUTOSTART_FOLDER;
     public static File SCRIPTS_FOLDER;
+    public static File LIB_FOLDER;
     static HashMap<String, ShellInstance> consoleInstances = new HashMap<>();
     public void onEnable()
     {
@@ -45,6 +48,29 @@ public class SinkScripts extends JavaPlugin
 
         AUTOSTART_FOLDER = new File(SCRIPTS_FOLDER, "autostart");
         SCRIPTS_FOLDER = new File(SinkLibrary.getCustomDataFolder(), "scripts");
+        LIB_FOLDER = new File(SinkLibrary.getCustomDataFolder(), "libs");
+
+        try {
+            File[] files = LIB_FOLDER.listFiles();
+            if(files != null)
+            {
+                getLogger().info("BukkitConsole: JARs found: " + files.length);
+                for ( File file : files )
+                {
+                    if ( file.getName().endsWith(".jar") )
+                    {
+                        getLogger().info("SinkScripts: Loading lib:  - " + file.getName());
+                        PluginClassLoader loader = (PluginClassLoader) this.getClassLoader();
+                        Method m = loader.getClass().getDeclaredMethod("addURL", URL.class);
+                        m.setAccessible(true);
+                        m.invoke(loader, new File(LIB_FOLDER, file.getName()).toURI().toURL());
+                    }
+                }
+            }
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
 
         registerCommands();
         registerListeners();
@@ -57,16 +83,16 @@ public class SinkScripts extends JavaPlugin
         loadAutoStart();
     }
 
-    public void onDisable()
-    {
-        Context.exit();
-    }
-
     private void registerScriptLanguages()
     {
         ScriptUtil.register(new GroovyScript(this));
         ScriptUtil.register(new JavaScript(this));
         ScriptUtil.register(new LuaScript(this));
+    }
+
+    public PluginClassLoader getPluginClassLoader()
+    {
+        return (PluginClassLoader) getClassLoader();
     }
 
     private void loadAutoStart()

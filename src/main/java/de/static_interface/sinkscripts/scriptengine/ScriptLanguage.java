@@ -142,7 +142,7 @@ public abstract class ScriptLanguage
         boolean isExecute = line.startsWith(".execute");
         boolean async = isExecute && line.contains(" --async"); // bad :(
         final boolean noOutput = isExecute && (line.contains(" --hideoutput"));
-        final boolean clear = isExecute && (line.contains("--clear"));
+        final boolean clear = isExecute && (line.contains(" --clear"));
 
         final ScriptLanguage language = getLanguage(sender);
         if(language == null && (!line.startsWith(".setlanguage") && !line.startsWith(".help")))
@@ -353,7 +353,7 @@ public abstract class ScriptLanguage
                             language.setVariable(shellInstance, "server", Bukkit.getServer());
                             language.setVariable(shellInstance, "players", Bukkit.getOnlinePlayers());
                             language.setVariable(shellInstance, "users", SinkLibrary.getOnlineUsers());
-
+                            language.setVariable(shellInstance, "sender", sender);
                             if ( sender instanceof Player )
                             {
                                 Player player = (Player) sender;
