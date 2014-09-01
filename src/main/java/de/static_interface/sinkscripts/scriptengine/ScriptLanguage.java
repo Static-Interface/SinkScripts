@@ -46,8 +46,8 @@ public abstract class ScriptLanguage
 
     private ShellInstance consoleShellInstance;
 
-    public static File SCRIPTLANGUAGE_DIRECTORY;
-    public static File FRAMEWORK_FOLDER;
+    public File SCRIPTLANGUAGE_DIRECTORY;
+    public File FRAMEWORK_FOLDER;
 
     public ScriptLanguage(Plugin plugin, String name, String fileExtension)
     {
@@ -352,7 +352,7 @@ public abstract class ScriptLanguage
                                 break;
                             }
                             String scriptName = args[1];
-                            File scriptFile = new File(SCRIPTLANGUAGE_DIRECTORY, scriptName + "." + language.getFileExtension());
+                            File scriptFile = new File(language.SCRIPTLANGUAGE_DIRECTORY, scriptName + "." + language.getFileExtension());
                             if ( scriptFile.exists() )
                             {
                                 if ( !scriptFile.delete() ) throw new RuntimeException("Couldn't override " + scriptFile + " (File.delete() returned false)!");
