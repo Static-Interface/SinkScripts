@@ -51,6 +51,7 @@ public class SinkScripts extends JavaPlugin
             SinkLibrary.getCustomLogger().severe("Coudln't create scripts or lib directory!");
         }
 
+        registerCommands();
         registerScriptLanguages();
 
         try
@@ -87,7 +88,6 @@ public class SinkScripts extends JavaPlugin
             language.init();
         }
 
-        registerCommands();
         registerListeners();
 
         loadAutoStart();
@@ -110,7 +110,7 @@ public class SinkScripts extends JavaPlugin
         ScriptUtil.register(new JavaScript(this));
         ScriptUtil.register(new LuaScript(this));
         ScriptUtil.register(new PythonScript(this));
-        ScriptUtil.register(new PerlScript(this));
+        ScriptUtil.register(new RubyScript(this));
     }
 
     public ClassLoader getClazzLoader()

@@ -24,11 +24,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class PerlScript extends ScriptEngineScript
+public class RubyScript extends ScriptEngineScript
 {
-    public PerlScript(Plugin plugin)
+    public RubyScript(Plugin plugin)
     {
-        super(plugin, "perl", "pl", "jerl");
+        super(plugin, "ruby", "rb", "jruby");
     }
 
     @Override
@@ -72,50 +72,57 @@ public class PerlScript extends ScriptEngineScript
         code = tmp;
 
         HashMap<String, ChatColor> syntaxColors = new HashMap<>();
-
-        syntaxColors.put("package", ChatColor.GOLD);
         syntaxColors.put("import", ChatColor.GOLD);
-
-        syntaxColors.put("__DATA__", defaultColor);
+        syntaxColors.put("package", ChatColor.GOLD);
+        syntaxColors.put("BEGIN", defaultColor);
+        syntaxColors.put("END", defaultColor);
+        syntaxColors.put("__ENCODING__", defaultColor);
         syntaxColors.put("__END__", defaultColor);
         syntaxColors.put("__FILE__", defaultColor);
         syntaxColors.put("__LINE__", defaultColor);
-        syntaxColors.put("__PACKAGE__", defaultColor);
+        syntaxColors.put("alias", defaultColor);
         syntaxColors.put("and", defaultColor);
-        syntaxColors.put("cmp", defaultColor);
-        syntaxColors.put("continue", defaultColor);
-        syntaxColors.put("CORE", defaultColor);
+        syntaxColors.put("begin", defaultColor);
+        syntaxColors.put("break", defaultColor);
+        syntaxColors.put("case", defaultColor);
+        syntaxColors.put("class", defaultColor);
+        syntaxColors.put("def", defaultColor);
+        syntaxColors.put("defined?", defaultColor);
         syntaxColors.put("do", defaultColor);
         syntaxColors.put("else", defaultColor);
         syntaxColors.put("elsif", defaultColor);
-        syntaxColors.put("eq", defaultColor);
-        syntaxColors.put("exp", defaultColor);
+        syntaxColors.put("end", defaultColor);
+        syntaxColors.put("ensure", defaultColor);
+        syntaxColors.put("false", ChatColor.GOLD);
         syntaxColors.put("for", defaultColor);
-        syntaxColors.put("foreach", defaultColor);
-        syntaxColors.put("ge", defaultColor);
-        syntaxColors.put("gt", defaultColor);
         syntaxColors.put("if", defaultColor);
-        syntaxColors.put("le", defaultColor);
-        syntaxColors.put("lock", defaultColor);
-        syntaxColors.put("lt", defaultColor);
-        syntaxColors.put("m", defaultColor);
-        syntaxColors.put("ne", defaultColor);
-        syntaxColors.put("no", defaultColor);
+        syntaxColors.put("in", defaultColor);
+        syntaxColors.put("module", defaultColor);
+        syntaxColors.put("next", defaultColor);
+        syntaxColors.put("nil", ChatColor.GOLD);
+        syntaxColors.put("not", defaultColor);
         syntaxColors.put("or", defaultColor);
-        syntaxColors.put("package", defaultColor);
-        syntaxColors.put("q", defaultColor);
-        syntaxColors.put("qq", defaultColor);
-        syntaxColors.put("qr", defaultColor);
-        syntaxColors.put("qw", defaultColor);
-        syntaxColors.put("qx", defaultColor);
-        syntaxColors.put("s", defaultColor);
-        syntaxColors.put("sub", defaultColor);
-        syntaxColors.put("tr", defaultColor);
+        syntaxColors.put("redo", defaultColor);
+        syntaxColors.put("rescue", defaultColor);
+        syntaxColors.put("retry", defaultColor);
+        syntaxColors.put("return", defaultColor);
+        syntaxColors.put("self", defaultColor);
+        syntaxColors.put("super", defaultColor);
+        syntaxColors.put("then", defaultColor);
+        syntaxColors.put("true", ChatColor.GOLD);
+        syntaxColors.put("undef", defaultColor);
         syntaxColors.put("unless", defaultColor);
         syntaxColors.put("until", defaultColor);
+        syntaxColors.put("when", defaultColor);
         syntaxColors.put("while", defaultColor);
-        syntaxColors.put("xor", defaultColor);
-        syntaxColors.put("y", defaultColor);
+        syntaxColors.put("yield", defaultColor);
+
+        syntaxColors.put("java_import", ChatColor.GOLD);
+        syntaxColors.put("import", ChatColor.GOLD);
+        syntaxColors.put("include", ChatColor.GOLD);
+        syntaxColors.put("include_class", ChatColor.GOLD);
+        syntaxColors.put("include_package", ChatColor.GOLD);
+        syntaxColors.put("require", ChatColor.GOLD);
 
         for(String keyWord : syntaxColors.keySet())
         {
@@ -126,41 +133,33 @@ public class PerlScript extends ScriptEngineScript
         }
 
         tmp = "";
+        lastChar = 0;
 
-        char startChar = 0;
-        boolean resetColor = false;
+        boolean stringStart = false;
+
         //Set String color
         for ( char Char : code.toCharArray() )
         {
-            if(Char == startChar)
+            if ( Char == '"' && lastChar != '\\')
             {
-                tmp += Char;
-                startChar = 0;
-                resetColor = true;
-            }
-            else if (Char == '\'' || Char == '"' || (Char == '^' && lastChar == 'q'))
-            {
-                if(startChar == 0 && Char != ']')
+                if ( !stringStart )
                 {
-                    startChar = Char;
+                    tmp += stringColor;
                 }
 
-                tmp += stringColor;
                 tmp += Char;
-            }
-            else if(resetColor)
-            {
-                tmp += codeColor;
-                tmp+= Char;
-                resetColor = false;
+
+                if ( stringStart )
+                {
+                    tmp += codeColor;
+                }
+
+                stringStart = !stringStart;
             }
             else
             {
                 tmp += Char;
             }
-
-
-
             lastChar = Char;
         }
 
@@ -170,14 +169,19 @@ public class PerlScript extends ScriptEngineScript
     @Override
     protected String getDefaultImports()
     {
-        return ""; //Todo
+        return ""; // Todo
     }
 
     @Override
     public List<String> getImportIdentifier()
     {
-        List<String> identifiers = new ArrayList<>();
-        identifiers.add("import");
-        return identifiers;
+        List<String> importIdentifiers = new ArrayList<>();
+        importIdentifiers.add("java_import");
+        importIdentifiers.add("import");
+        importIdentifiers.add("include");
+        importIdentifiers.add("include_class");
+        importIdentifiers.add("require");
+        importIdentifiers.add("include_package");
+        return importIdentifiers;
     }
 }

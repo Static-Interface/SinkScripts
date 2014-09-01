@@ -44,7 +44,7 @@ public class ScriptCommand extends Command
         if ( !(sender instanceof ConsoleCommandSender) && ScriptUtil.isEnabled(sender) )
         {
             ScriptUtil.setEnabled(sender, false);
-            sender.sendMessage(ChatColor.DARK_RED + "Disabled Interactive Groovy Console");
+            sender.sendMessage(ChatColor.DARK_RED + "Disabled Interactive Scripting Console");
             return true;
         }
 
@@ -65,7 +65,7 @@ public class ScriptCommand extends Command
         }
 
         ScriptUtil.setEnabled(sender, true);
-        sender.sendMessage(ChatColor.DARK_GREEN + "Enabled Interactive Groovy Console");
+        sender.sendMessage(ChatColor.DARK_GREEN + "Enabled Interactive Scripting Console");
         return true;
     }
 }

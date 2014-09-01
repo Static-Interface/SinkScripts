@@ -273,7 +273,7 @@ public abstract class ScriptLanguage
                                 shellInstance = newLanguage.createNewShellInstance(sender);
                             }
                             setLanguage(sender, newLanguage);
-                            sender.sendMessage("Language has been set to: " + newLanguage.getName());
+                            sender.sendMessage(ChatColor.GOLD + "Language has been set to: " + ChatColor.RED + newLanguage.getName());
                             break;
 
                         case ".clear":

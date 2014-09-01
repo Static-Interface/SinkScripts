@@ -161,10 +161,10 @@ public class PythonScript extends ScriptEngineScript
     @Override
     public List<String> getImportIdentifier()
     {
-        List<String> imports = new ArrayList<>();
-        imports.add("from");
-        imports.add("import");
-        return imports;
+        List<String> importIdentifiers = new ArrayList<>();
+        importIdentifiers.add("from");
+        importIdentifiers.add("import");
+        return importIdentifiers;
     }
 
     @Override
