@@ -87,14 +87,7 @@ public class SinkScripts extends JavaPlugin
 
         for(ScriptLanguage language : ScriptUtil.getScriptLanguages())
         {
-            try
-            {
-                language.init();
-            }
-            catch(Throwable e)
-            {
-                e.printStackTrace();
-            }
+            language.init();
         }
 
         registerCommands();

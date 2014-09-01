@@ -103,14 +103,7 @@ public class ScriptUtil
     public static void register(ScriptLanguage scriptLanguage)
     {
         scriptLanguages.put(scriptLanguage.getFileExtension(), scriptLanguage);
-        try
-        {
-            scriptLanguage.preInit();
-        }
-        catch(Throwable e)
-        {
-            e.printStackTrace();
-        }
+        scriptLanguage.preInit();
     }
 
     public static String getFileExtension(File file)
