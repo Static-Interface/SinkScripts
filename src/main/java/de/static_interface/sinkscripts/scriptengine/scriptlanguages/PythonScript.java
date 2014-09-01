@@ -15,7 +15,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.static_interface.sinkscripts.scriptengine.languages;
+package de.static_interface.sinkscripts.scriptengine.scriptlanguages;
 
 import de.static_interface.sinklibrary.SinkLibrary;
 import org.bukkit.ChatColor;
@@ -196,7 +196,7 @@ public class PythonScript extends ScriptEngineScript
         File setup = new File(jynx, "setup.py");
         if ( setup.exists() )
         {
-            runCode(getConsoleShellInstance(), setup);
+            eval(getConsoleShellInstance(), setup);
         }
     }
 }

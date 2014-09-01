@@ -20,9 +20,9 @@ package de.static_interface.sinkscripts;
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.exceptions.NotInitializedException;
 import de.static_interface.sinkscripts.commands.ScriptCommand;
+import de.static_interface.sinkscripts.scriptengine.ScriptHandler;
 import de.static_interface.sinkscripts.scriptengine.ScriptLanguage;
-import de.static_interface.sinkscripts.scriptengine.ScriptUtil;
-import de.static_interface.sinkscripts.scriptengine.languages.*;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguages.*;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -83,7 +83,7 @@ public class SinkScripts extends JavaPlugin
             e.printStackTrace();
         }
 
-        for(ScriptLanguage language : ScriptUtil.getScriptLanguages())
+        for(ScriptLanguage language : ScriptHandler.getScriptLanguages())
         {
             language.init();
         }
@@ -106,11 +106,11 @@ public class SinkScripts extends JavaPlugin
 
     private void registerScriptLanguages()
     {
-        ScriptUtil.register(new GroovyScript(this));
-        ScriptUtil.register(new JavaScript(this));
-        ScriptUtil.register(new LuaScript(this));
-        ScriptUtil.register(new PythonScript(this));
-        ScriptUtil.register(new RubyScript(this));
+        ScriptHandler.register(new GroovyScript(this));
+        ScriptHandler.register(new JavaScript(this));
+        ScriptHandler.register(new LuaScript(this));
+        ScriptHandler.register(new PythonScript(this));
+        ScriptHandler.register(new RubyScript(this));
     }
 
     public ClassLoader getClazzLoader()
@@ -120,7 +120,7 @@ public class SinkScripts extends JavaPlugin
 
     private void loadAutoStart()
     {
-       for(ScriptLanguage language : ScriptUtil.getScriptLanguages())
+       for(ScriptLanguage language : ScriptHandler.getScriptLanguages())
        {
            language.onAutoStart();
        }

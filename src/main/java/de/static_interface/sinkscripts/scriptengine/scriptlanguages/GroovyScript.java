@@ -15,9 +15,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.static_interface.sinkscripts.scriptengine.languages;
+package de.static_interface.sinkscripts.scriptengine.scriptlanguages;
 
-import de.static_interface.sinkscripts.scriptengine.ScriptUtil;
+import de.static_interface.sinkscripts.util.Util;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 
@@ -183,7 +183,7 @@ public class GroovyScript extends ScriptEngineScript
     @Override
     protected String getDefaultImports()
     {
-        String nl = ScriptUtil.getNewLine();
+        String nl = Util.getNewLine();
         return  "import de.static_interface.sinklibrary.*;" + nl +
                 "import de.static_interface.sinkscripts.*;" + nl +
                 "import org.bukkit.block.*;" + nl +

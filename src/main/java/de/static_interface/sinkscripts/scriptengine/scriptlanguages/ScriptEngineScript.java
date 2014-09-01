@@ -15,12 +15,15 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.static_interface.sinkscripts.scriptengine.languages;
+package de.static_interface.sinkscripts.scriptengine.scriptlanguages;
 
+import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinkscripts.SinkScripts;
 import de.static_interface.sinkscripts.scriptengine.ScriptLanguage;
 import de.static_interface.sinkscripts.scriptengine.shellinstances.ScriptEngineShellInstance;
 import de.static_interface.sinkscripts.scriptengine.shellinstances.ShellInstance;
+import de.static_interface.sinkscripts.util.JoinClassLoader;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
@@ -38,7 +41,7 @@ public abstract class ScriptEngineScript extends ScriptLanguage
     }
 
     @Override
-    public Object runCode(ShellInstance instance, String code)
+    public Object eval(ShellInstance instance, String code)
     {
         try
         {
@@ -53,7 +56,9 @@ public abstract class ScriptEngineScript extends ScriptLanguage
     @Override
     public ShellInstance createNewShellInstance(CommandSender sender)
     {
-        ScriptEngine e = new ScriptEngineManager(((SinkScripts) plugin).getClazzLoader()).getEngineByName(engineName);
+        ScriptEngine e = new ScriptEngineManager
+                (new JoinClassLoader(((SinkScripts) plugin).getClazzLoader(), Bukkit.class.getClassLoader(),
+                        SinkLibrary.class.getClassLoader())).getEngineByName(engineName);
         if(e == null) throw new NullPointerException("Couldn't find ScriptEngine: " + engineName + ". Did you forgot to add a library?");
         return new ScriptEngineShellInstance(sender, e);
     }

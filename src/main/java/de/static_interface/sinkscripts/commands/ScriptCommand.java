@@ -18,8 +18,7 @@
 package de.static_interface.sinkscripts.commands;
 
 import de.static_interface.sinklibrary.commands.Command;
-import de.static_interface.sinkscripts.scriptengine.ScriptUtil;
-import de.static_interface.sinkscripts.scriptengine.ScriptLanguage;
+import de.static_interface.sinkscripts.scriptengine.ScriptHandler;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -41,9 +40,9 @@ public class ScriptCommand extends Command
     @Override
     public boolean onExecute(CommandSender sender, String label, String[] args)
     {
-        if ( !(sender instanceof ConsoleCommandSender) && ScriptUtil.isEnabled(sender) )
+        if ( !(sender instanceof ConsoleCommandSender) && ScriptHandler.isEnabled(sender) )
         {
-            ScriptUtil.setEnabled(sender, false);
+            ScriptHandler.setEnabled(sender, false);
             sender.sendMessage(ChatColor.DARK_RED + "Disabled Interactive Scripting Console");
             return true;
         }
@@ -55,7 +54,7 @@ public class ScriptCommand extends Command
             {
                 currentLine += arg + ' ';
             }
-            ScriptLanguage.executeScript(sender, currentLine, plugin);
+            ScriptHandler.handleLine(sender, currentLine, plugin);
             return true;
         }
 
@@ -64,7 +63,7 @@ public class ScriptCommand extends Command
             return false;
         }
 
-        ScriptUtil.setEnabled(sender, true);
+        ScriptHandler.setEnabled(sender, true);
         sender.sendMessage(ChatColor.DARK_GREEN + "Enabled Interactive Scripting Console");
         return true;
     }

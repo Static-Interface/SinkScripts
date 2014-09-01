@@ -17,29 +17,20 @@
 
 package de.static_interface.sinkscripts.scriptengine;
 
-import de.static_interface.sinklibrary.SinkLibrary;
-import de.static_interface.sinkscripts.scriptengine.shellinstances.DummyShellInstance;
 import de.static_interface.sinkscripts.scriptengine.shellinstances.ShellInstance;
+import de.static_interface.sinkscripts.util.Util;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.util.BlockIterator;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
 
 import static de.static_interface.sinkscripts.SinkScripts.SCRIPTS_FOLDER;
 
 public abstract class ScriptLanguage
 {
-    protected static  HashMap<String, ShellInstance> shellInstances = new HashMap<>(); // PlayerName - Shell Instance
-    private static HashMap<String, ScriptLanguage> languageInstances = new HashMap<>();
     protected String fileExtension;
     protected Plugin plugin;
     protected String name;
@@ -73,401 +64,20 @@ public abstract class ScriptLanguage
         return fileExtension;
     }
 
-    public static HashMap<String, ShellInstance> getShellInstances()
-    {
-        return shellInstances;
-    }
-
     public abstract String formatCode(String code);
 
-    public abstract Object runCode(ShellInstance instance, String code);
+    public abstract Object eval(ShellInstance instance, String code);
 
-    public Object runCode(ShellInstance instance, File file)
+    public Object eval(ShellInstance instance, File file)
     {
         try
         {
-            return runCode(instance, loadFile(file));
+            return eval(instance, Util.loadFile(file));
         }
         catch ( IOException e )
         {
             throw new RuntimeException(e);
         }
-    }
-
-    protected static String loadFile(File scriptFile) throws IOException
-    {
-        String nl = ScriptUtil.getNewLine();
-        if ( !scriptFile.exists() )
-        {
-            throw new FileNotFoundException("Couldn't find file: " + scriptFile);
-        }
-        BufferedReader br = new BufferedReader(new FileReader(scriptFile));
-        StringBuilder sb = new StringBuilder();
-        String line = br.readLine();
-
-        while ( line != null )
-        {
-            sb.append(line);
-            sb.append(nl);
-            line = br.readLine();
-        }
-        return sb.toString();
-    }
-
-    private String loadFile(String scriptName) throws IOException
-    {
-        File scriptFile = new File(SCRIPTLANGUAGE_DIRECTORY, scriptName + "." + fileExtension);
-        if(!scriptFile.exists())
-        {
-            SinkLibrary.getCustomLogger().debug("Couldn't find file: " + scriptFile.getAbsolutePath());
-            scriptFile = searchRecursively(scriptName, SCRIPTLANGUAGE_DIRECTORY);
-        }
-        return loadFile(scriptFile);
-    }
-
-    private File searchRecursively(String scriptName, File directory) throws IOException
-    {
-        File[] files = directory.listFiles();
-        if(files == null) return null;
-        for (File file : files)
-        {
-            if (file.isDirectory())
-            {
-                return searchRecursively(scriptName, file);
-            }
-            else
-            {
-                if(file.getName().equals(scriptName + "." + getFileExtension())) return file;
-            }
-        }
-        return null;
-    }
-
-    volatile static ShellInstance shellInstance;
-    public static void executeScript(final CommandSender sender, final String line, final Plugin plugin)
-    {
-        final String name = ScriptUtil.getInternalName(sender);
-        final List<String> availableParamters = new ArrayList<>();
-        availableParamters.add("--async");
-        availableParamters.add("--hideoutput");
-        availableParamters.add("--clear");
-        boolean isExecute = line.startsWith(".execute");
-        boolean async = isExecute && line.contains(" --async"); // bad :(
-        final boolean noOutput = isExecute && (line.contains(" --hideoutput"));
-        final boolean clear = isExecute && (line.contains(" --clear"));
-
-        final ScriptLanguage language = getLanguage(sender);
-        if(language == null && (!line.startsWith(".setlanguage") && !line.startsWith(".help") && !line.startsWith(".listlanguages")))
-        {
-            sender.sendMessage("Language not set! Use .setlanguage <language>");
-            return;
-        }
-        if(sender instanceof ConsoleCommandSender )
-        {
-            shellInstance = language.getConsoleShellInstance();
-        }
-        else
-            shellInstance = shellInstances.get(ScriptUtil.getInternalName(sender));
-        if(shellInstance == null)
-        {
-            SinkLibrary.getCustomLogger().log(Level.INFO, "Initializing ShellInstance for " + sender.getName());
-
-            if(language == null)
-                shellInstance = new DummyShellInstance(sender, null); // Used for .setLanguage
-            else
-                shellInstance = language.createNewShellInstance(sender);
-
-            shellInstances.put(ScriptUtil.getInternalName(sender), shellInstance);
-        }
-
-        // Still null?!
-        if(shellInstance == null) throw new IllegalStateException("Couldn't create shellInstance!");
-
-        Runnable runnable = new Runnable()
-        {
-            String nl = ScriptUtil.getNewLine();
-            String code = "";
-
-            @SuppressWarnings("ConstantConditions")
-            public void run()
-            {
-                try
-                {
-                    String currentLine = line;
-                    String[] args = currentLine.split(" ");
-                    String mode = args[0].toLowerCase();
-
-                    boolean codeSet = false;
-
-                    if ( shellInstances.get(name).getCode() == null )
-                    {
-                        shellInstance.setCode(currentLine);
-                        code = currentLine;
-                        codeSet = true;
-                    }
-
-                    //dont use new line if line starts with "<" (e.g. if the line is too long or you want to add something to it)
-                    boolean useNl = !currentLine.startsWith("<");
-                    if ( !useNl )
-                    {
-                        currentLine = currentLine.replaceFirst("<", "");
-                        nl = "";
-                    }
-
-                    if ( currentLine.startsWith(".") ) // command, don't add to code
-                    {
-                        code = code.replace(currentLine, "");
-                        currentLine = "";
-                    }
-
-                    String prevCode = shellInstance.getCode();
-
-                    if ( !codeSet )
-                    {
-                        boolean isImport = false;
-                        for(String s : language.getImportIdentifier())
-                        {
-                            if (language != null && currentLine.startsWith(s))
-                            {
-                                code = currentLine + nl + prevCode;
-                                isImport = true;
-                                break;
-                            }
-                        }
-                        if (!isImport) code = prevCode + nl + currentLine;
-                        shellInstance.setCode(code);
-                    }
-                    SinkLibrary.getUser(sender).sendDebugMessage(ChatColor.GOLD + "Script mode: " + ChatColor.RED + mode);
-
-                    /* Todo:
-                     * add permissions for commands, e.g. sinkscripts.use.help, sinkscripts.use.executefile etc...
-                     */
-                    switch ( mode )
-                    {
-                        case ".help":
-                            sender.sendMessage(ChatColor.GREEN + "[Help] " + ChatColor.GRAY + "Available Commands: .help, .load <file>, " +
-                                    ".save <file>, .execute [file], .setvariable <name> <value>, .history, .clear, .setlanguage <language>");
-                            break;
-
-                        case ".setlanguage":
-                            ScriptLanguage newLanguage = null;
-                            for(ScriptLanguage lang : ScriptUtil.getScriptLanguages())
-                            {
-                                if( lang.getName().equals(args[1]) || lang.getFileExtension().equals(args[1]) )
-                                {
-                                    newLanguage = lang;
-                                    break;
-                                }
-                            }
-                            if ( newLanguage == null )
-                            {
-                                sender.sendMessage("Unknown language: " + args[1]);
-                                break;
-                            }
-                            if ( sender instanceof ConsoleCommandSender )
-                            {
-                                shellInstance = language.getConsoleShellInstance();
-                            }
-                            else
-                            {
-                                shellInstance = newLanguage.createNewShellInstance(sender);
-                            }
-                            setLanguage(sender, newLanguage);
-                            sender.sendMessage(ChatColor.GOLD + "Language has been set to: " + ChatColor.RED + newLanguage.getName());
-                            break;
-
-                        case ".clear":
-                            shellInstance.setCode("");
-                            sender.sendMessage(ChatColor.DARK_RED + "History cleared");
-                            break;
-
-                        case ".listlanguages":
-                            String languages = "";
-
-                            for(ScriptLanguage language : ScriptUtil.getScriptLanguages() )
-                            {
-                                if(languages.equals(""))
-                                {
-                                    languages = language.getName();
-                                    continue;
-                                }
-
-                                languages += ", " + language.getName();
-                            }
-
-                            sender.sendMessage(ChatColor.GOLD + "Available script languages: " + ChatColor.RESET + languages);
-                            break;
-
-                        case ".setvariable":
-                            //if ( args.length < 1 || !currentLine.contains("=") )
-                            //{
-                            //    sender.sendMessage(ChatColor.DARK_RED + "Usage: .setvariable name=value");
-                            //    break;
-                            //}
-                            try
-                            {
-                                String[] commandArgs = line.split("=");
-                                String variableName = commandArgs[0].split(" ")[1];
-                                Object value = language.getValue(commandArgs);
-                                language.setVariable(shellInstance, variableName, value);
-                                sender.sendMessage(ChatColor.BLUE + variableName + ChatColor.RESET +" has been successfully set to " + ChatColor.RED + value + ChatColor.RESET +" (" + value.getClass().getSimpleName() + ")");
-                            }
-                            catch ( Exception e )
-                            {
-                                ScriptUtil.reportException(sender, e);
-                            }
-                            break;
-
-                        case ".load":
-                        {
-                            if ( args.length < 2 )
-                            {
-                                sender.sendMessage(ChatColor.DARK_RED + "Too few arguments! .load <File>");
-                                break;
-                            }
-                            String scriptName = args[1];
-
-                            try
-                            {
-                                shellInstance.setCode(language.loadFile(scriptName) + code);
-                            }
-                            catch ( FileNotFoundException ignored )
-                            {
-                                sender.sendMessage(ChatColor.DARK_RED + "File doesn't exists!");
-                                break;
-                            }
-                            catch ( Exception e )
-                            {
-                                ScriptUtil.reportException(sender, e);
-                                break;
-                            }
-                            sender.sendMessage(ChatColor.DARK_GREEN + "File loaded");
-                            break;
-                        }
-
-                        case ".save":
-                            if ( args.length < 2 )
-                            {
-                                sender.sendMessage(ChatColor.DARK_RED + "Too few arguments! .save <File>");
-                                break;
-                            }
-                            String scriptName = args[1];
-                            File scriptFile = new File(language.SCRIPTLANGUAGE_DIRECTORY, scriptName + "." + language.getFileExtension());
-                            if ( scriptFile.exists() )
-                            {
-                                if ( !scriptFile.delete() ) throw new RuntimeException("Couldn't override " + scriptFile + " (File.delete() returned false)!");
-                                break;
-                            }
-                            PrintWriter writer;
-                            try
-                            {
-                                writer = new PrintWriter(scriptFile, "UTF-8");
-                            }
-                            catch ( Exception e )
-                            {
-                                ScriptUtil.reportException(sender, e);
-                                break;
-                            }
-                            writer.write(code);
-                            writer.close();
-                            sender.sendMessage(ChatColor.DARK_GREEN + "Code saved!");
-                            break;
-
-                        case ".execute":
-                            code = language.onUpdateImports(code);
-
-                            language.setVariable(shellInstance, "me", SinkLibrary.getUser(sender));
-                            language.setVariable(shellInstance, "plugin", plugin);
-                            language.setVariable(shellInstance, "server", Bukkit.getServer());
-                            language.setVariable(shellInstance, "players", Bukkit.getOnlinePlayers());
-                            language.setVariable(shellInstance, "users", SinkLibrary.getOnlineUsers());
-                            language.setVariable(shellInstance, "sender", sender);
-                            language.setVariable(shellInstance, "language", language);
-
-                            if ( sender instanceof Player )
-                            {
-                                Player player = (Player) sender;
-                                BlockIterator iterator = new BlockIterator(player);
-                                language.setVariable(shellInstance, "player", player);
-                                language.setVariable(shellInstance, "at", iterator.next());
-                                language.setVariable(shellInstance, "x", player.getLocation().getX());
-                                language.setVariable(shellInstance, "y", player.getLocation().getY());
-                                language.setVariable(shellInstance, "z", player.getLocation().getZ());
-                            }
-
-                            try
-                            {
-                                SinkLibrary.getCustomLogger().logToFile(Level.INFO, sender.getName() + " executed script: " + nl + code);
-                                boolean isParameter = false;
-                                if(args.length > 1)
-                                {
-                                    for ( String s : availableParamters )
-                                    {
-                                        if ( s.equals(args[1]) )
-                                        {
-                                            isParameter = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                                if ( args.length >= 2 && !isParameter )
-                                {
-                                    code = language.loadFile(args[1]);
-                                }
-                                String result = String.valueOf(language.runCode(shellInstance, code));
-
-                                if ( !noOutput ) sender.sendMessage(ChatColor.AQUA + "Output: " + ChatColor.GREEN + language.formatCode(result));
-
-                                if (clear)
-                                {
-                                    shellInstance.setCode("");
-                                }
-                            }
-                            catch ( Exception e )
-                            {
-                                ScriptUtil.reportException(sender, e);
-                            }
-                            break;
-
-                        case ".history":
-                            sender.sendMessage(ChatColor.GOLD + "-------|History|-------");
-                            sender.sendMessage(ChatColor.WHITE + language.formatCode(code));
-                            sender.sendMessage(ChatColor.GOLD + "-----------------------");
-                            break;
-
-                        default:
-                            if ( mode.startsWith(".") )
-                            {
-                                sender.sendMessage('"' + mode + "\" is not a valid command");
-                                break;
-                            }
-                            sender.sendMessage(ChatColor.DARK_GREEN + "[Input] " + ChatColor.WHITE + language.formatCode(currentLine));
-                            break;
-                    }
-                    shellInstances.put(name, shellInstance);
-                }
-                catch(Throwable e)
-                {
-                    ScriptUtil.reportException(sender, e);
-                }
-            }
-        };
-
-        if(async)
-            Bukkit.getScheduler().runTaskAsynchronously(plugin, runnable); // use tasks instead of because bukkit can handle them
-        else
-            Bukkit.getScheduler().runTask(plugin, runnable);
-
-    }
-
-    private static void setLanguage(CommandSender sender, ScriptLanguage lang)
-    {
-        languageInstances.put(ScriptUtil.getInternalName(sender), lang);
-    }
-
-    private static ScriptLanguage getLanguage(CommandSender sender)
-    {
-        return languageInstances.get(ScriptUtil.getInternalName(sender));
     }
 
     /**
@@ -476,7 +86,7 @@ public abstract class ScriptLanguage
      * @return Value
      */
 
-    private Object getValue(String[] commandArgs)
+    protected Object getValue(String[] commandArgs)
     {
         String commandArg = commandArgs[1];
 
@@ -547,6 +157,7 @@ public abstract class ScriptLanguage
     protected String onUpdateImports(String code)
     {
         String defaultImports = getDefaultImports();
+        if(defaultImports == null) return code;
         code = code.replace(defaultImports, "");
         return defaultImports + code;
     }
@@ -577,8 +188,8 @@ public abstract class ScriptLanguage
             }
             else
             {
-                if( !ScriptUtil.getFileExtension(file).equals(getFileExtension()) ) continue;
-                runCode(getConsoleShellInstance(), file);
+                if( !Util.getFileExtension(file).equals(getFileExtension()) ) continue;
+                eval(getConsoleShellInstance(), file);
             }
         }
     }
