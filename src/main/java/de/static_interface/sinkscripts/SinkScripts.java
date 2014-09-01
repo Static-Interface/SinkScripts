@@ -50,7 +50,7 @@ public class SinkScripts extends JavaPlugin
         {
             SinkLibrary.getCustomLogger().severe("Coudln't create scripts or lib directory!");
         }
-
+        setupProperties();
         registerCommands();
         registerScriptLanguages();
 
@@ -91,6 +91,13 @@ public class SinkScripts extends JavaPlugin
         registerListeners();
 
         loadAutoStart();
+    }
+
+    private void setupProperties()
+    {
+        System.setProperty("CMSClassUnloadingEnabled", "true");
+        System.setProperty("UseConcMarkSweepGC", "true");
+        System.setProperty("CMSPermGenSweepingEnabled", "true");
     }
 
     public void addURL(URL url) throws Exception {

@@ -17,10 +17,7 @@
 
 package de.static_interface.sinkscripts.scriptengine.scriptlanguages;
 
-import de.static_interface.sinklibrary.SinkLibrary;
-import de.static_interface.sinkscripts.SinkScripts;
 import de.static_interface.sinkscripts.util.Util;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 
@@ -174,27 +171,27 @@ public class RubyScript extends ScriptEngineScript
     @Override
     protected String getDefaultImports()
     {
-        String sinkLibraryPath = SinkLibrary.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-        String sinkScriptsPath = SinkScripts.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-        String bukkitPath = Bukkit.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-
         String nl = Util.getNewLine();
         return  "require 'java'" + nl +
-                "require '" + sinkLibraryPath + "'" + nl +
-                "require '" + sinkScriptsPath + "'" + nl +
-                "require '" + bukkitPath + "'" + nl +
-                "java_import \"de.static_interface.sinklibrary\" " + nl +
-                "java_import \"de.static_interface.sinkscripts\" " + nl +
-                "java_import \"org.bukkit.block\" " + nl +
-                "java_import \"org.bukkit.event\" " + nl +
-                "java_import \"org.bukkit.entity\" " + nl +
-                "java_import \"org.bukkit.inventory\" " + nl +
-                "java_import \"org.bukkit.material\" " + nl +
-                "java_import \"org.bukkit.potion\" " + nl +
-                "java_import \"org.bukkit.util\" " + nl +
-                "java_import \"org.bukkit\" " + nl +
-                "java_import \"java.lang\" " + nl +
-                "java_import \"javax.script\" " + nl + nl;
+
+                "module SinkLibrary" + nl +
+                "    include_package \"de.static_interface.sinklibrary\"" + nl +
+                "end" + nl + nl +
+
+                "module SinkScripts" + nl +
+                "    include_package \"de.static_interface.sinkscripts\"" + nl +
+                "end" + nl + nl +
+
+                "module Bukkit" + nl +
+                "    include_package \"org.bukkit.block\"" + nl +
+                "    include_package \"org.bukkit.event\"" + nl +
+                "    include_package \"org.bukkit.entity\"" + nl +
+                "    include_package \"org.bukkit.inventory\"" + nl +
+                "    include_package \"org.bukkit.material\"" + nl +
+                "    include_package \"org.bukkit.potion\"" + nl +
+                "    include_package \"org.bukkit.util\"" + nl +
+                "    include_package \"org.bukkit\"" + nl +
+                "end" + nl +nl;
     }
 
     @Override
@@ -209,5 +206,12 @@ public class RubyScript extends ScriptEngineScript
         importIdentifiers.add("include_package");
         importIdentifiers.add("package_name");
         return importIdentifiers;
+    }
+
+    @Override
+    public void onInit()
+    {
+        System.setProperty("org.jruby.embed.compilemode", "OFF");
+        System.setProperty("jruby.compile.mode", "OFF");
     }
 }
