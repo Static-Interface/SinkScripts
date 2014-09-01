@@ -189,6 +189,7 @@ public class GroovyScript extends ScriptLanguage
     {
         String nl = System.getProperty("line.separator");
         return  "import de.static_interface.sinklibrary.*;" + nl +
+                "import de.static_interface.sinkscripts.*;" + nl +
                 "import org.bukkit.block.*;" + nl +
                 "import org.bukkit.entity.*;" + nl +
                 "import org.bukkit.inventory.*;" + nl +
