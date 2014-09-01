@@ -157,7 +157,7 @@ public abstract class ScriptLanguage
         final boolean clear = isExecute && (line.contains(" --clear"));
 
         final ScriptLanguage language = getLanguage(sender);
-        if(language == null && (!line.startsWith(".setlanguage") && !line.startsWith(".help")))
+        if(language == null && (!line.startsWith(".setlanguage") && !line.startsWith(".help") && !line.startsWith(".listlanguages")))
         {
             sender.sendMessage("Language not set! Use .setlanguage <language>");
             return;
