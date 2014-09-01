@@ -119,6 +119,7 @@ public abstract class ScriptLanguage
         File scriptFile = new File(SCRIPTLANGUAGE_DIRECTORY, scriptName + "." + fileExtension);
         if(!scriptFile.exists())
         {
+            SinkLibrary.getCustomLogger().debug("Couldn't find file: " + scriptFile.getAbsolutePath());
             scriptFile = searchRecursively(scriptName, SCRIPTLANGUAGE_DIRECTORY);
         }
         return loadFile(scriptFile);
@@ -280,6 +281,23 @@ public abstract class ScriptLanguage
                             sender.sendMessage(ChatColor.DARK_RED + "History cleared");
                             break;
 
+                        case ".listlanguages":
+                            String languages = "";
+
+                            for(ScriptLanguage language : ScriptUtil.getScriptLanguages() )
+                            {
+                                if(languages.equals(""))
+                                {
+                                    languages = language.getName();
+                                    continue;
+                                }
+
+                                languages += ", " + language.getName();
+                            }
+
+                            sender.sendMessage(ChatColor.GOLD + "Available script languages: " + ChatColor.RESET + languages);
+                            break;
+
                         case ".setvariable":
                             //if ( args.length < 1 || !currentLine.contains("=") )
                             //{
@@ -292,6 +310,7 @@ public abstract class ScriptLanguage
                                 String variableName = commandArgs[0].split(" ")[1];
                                 Object value = language.getValue(commandArgs);
                                 language.setVariable(shellInstance, variableName, value);
+                                sender.sendMessage(ChatColor.BLUE + variableName + ChatColor.RESET +" has been successfully set to " + ChatColor.RED + value + ChatColor.RESET +" (" + value.getClass().getSimpleName() + ")");
                             }
                             catch ( Exception e )
                             {
@@ -363,6 +382,8 @@ public abstract class ScriptLanguage
                             language.setVariable(shellInstance, "players", Bukkit.getOnlinePlayers());
                             language.setVariable(shellInstance, "users", SinkLibrary.getOnlineUsers());
                             language.setVariable(shellInstance, "sender", sender);
+                            language.setVariable(shellInstance, "language", language);
+
                             if ( sender instanceof Player )
                             {
                                 Player player = (Player) sender;
@@ -492,11 +513,12 @@ public abstract class ScriptLanguage
         }
         catch ( Exception ignored ) { }
 
-        try
-        {
-            return Boolean.parseBoolean(commandArg);
-        }
-        catch ( Exception ignored ) {}
+        //Parse Booleans
+        if(commandArg.equalsIgnoreCase("true") ||commandArg.equals("1"))
+            return Boolean.TRUE;
+
+        else if (commandArg.equalsIgnoreCase("false") ||commandArg.equals("0"))
+            return Boolean.FALSE;
 
         if ( commandArg.startsWith("'") && commandArg.endsWith("'") && commandArg.length() == 3 )
         {
