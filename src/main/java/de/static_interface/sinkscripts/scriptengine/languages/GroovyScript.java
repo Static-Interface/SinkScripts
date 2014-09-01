@@ -17,23 +17,18 @@
 
 package de.static_interface.sinkscripts.scriptengine.languages;
 
-import de.static_interface.sinkscripts.scriptengine.shellinstances.GroovyShellInstance;
-import de.static_interface.sinkscripts.scriptengine.ScriptLanguage;
-import de.static_interface.sinkscripts.scriptengine.shellinstances.ShellInstance;
-import groovy.lang.GroovyShell;
 import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class GroovyScript extends ScriptLanguage
+public class GroovyScript extends ScriptEngineScript
 {
     public GroovyScript(Plugin plugin)
     {
-        super(plugin, "groovy", "groovy");
+        super(plugin, "groovy", "groovy", "groovy");
     }
 
     @Override
@@ -178,11 +173,11 @@ public class GroovyScript extends ScriptLanguage
         return tmp;
     }
 
-    public Object runCode(ShellInstance shellInstance, String code)
-    {
-        GroovyShell instance = (GroovyShell) shellInstance.getExecutor();
-        return instance.evaluate(code);
-    }
+    //public Object runCode(ShellInstance shellInstance, String code)
+    //{
+    //    GroovyShell instance = (GroovyShell) shellInstance.getExecutor();
+    //    return instance.evaluate(code);
+    //}
 
     @Override
     protected String getDefaultImports()
@@ -199,19 +194,19 @@ public class GroovyScript extends ScriptLanguage
                 "import org.bukkit.*;" + nl + nl;
     }
 
-    @Override
-    public ShellInstance createNewShellInstance(CommandSender sender)
-    {
-        GroovyShell groovyShell = new GroovyShell();
-        return new GroovyShellInstance(sender, groovyShell);
-    }
-
-    @Override
-    public void setVariable(ShellInstance instance, String name, Object value)
-    {
-        GroovyShell shell = (GroovyShell) instance.getExecutor();
-        shell.setVariable(name, value);
-    }
+    //@Override
+    //public ShellInstance createNewShellInstance(CommandSender sender)
+    //{
+    //    GroovyShell groovyShell = new GroovyShell();
+    //    return new GroovyShellInstance(sender, groovyShell);
+    //}
+//
+    //@Override
+    //public void setVariable(ShellInstance instance, String name, Object value)
+    //{
+    //    GroovyShell shell = (GroovyShell) instance.getExecutor();
+    //    shell.setVariable(name, value);
+    //}
 
     @Override
     public List<String> getImportIdentifier()
