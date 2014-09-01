@@ -106,19 +106,17 @@ public class LuaScript extends ScriptEngineScript
         tmp = "";
 
         char startChar = 0;
+        boolean resetColor = false;
         //Set String color
         for ( char Char : code.toCharArray() )
         {
             if(Char == startChar)
             {
-                if ((Char == ']' && lastChar == ']') || Char != ']')
-                {
-                    tmp+= codeColor;
-                }
                 tmp += Char;
-               startChar = 0;
+                startChar = 0;
+                resetColor = true;
             }
-            else if (Char == '\'' || Char == '"' || (Char == '[' && lastChar == '['))
+            else if (Char == '\'' || Char == '"' || (Char == '^' && lastChar == 'q'))
             {
                 if(startChar == 0 && Char != ']')
                 {
@@ -128,10 +126,17 @@ public class LuaScript extends ScriptEngineScript
                 tmp += stringColor;
                 tmp += Char;
             }
+            else if(resetColor)
+            {
+                tmp += codeColor;
+                tmp+= Char;
+                resetColor = false;
+            }
             else
             {
                 tmp += Char;
             }
+
             lastChar = Char;
         }
 

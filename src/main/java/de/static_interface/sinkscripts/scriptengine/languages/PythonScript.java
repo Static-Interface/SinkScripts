@@ -197,7 +197,6 @@ public class PythonScript extends ScriptEngineScript
         if ( setup.exists() )
         {
             runCode(getConsoleShellInstance(), setup);
-            if(!setup.delete()) throw new RuntimeException("Couldn't delete file: " + setup.getName());
         }
     }
 }
