@@ -17,6 +17,7 @@
 
 package de.static_interface.sinkscripts.scriptengine.languages;
 
+import de.static_interface.sinkscripts.scriptengine.ScriptUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 
@@ -123,6 +124,7 @@ public class RubyScript extends ScriptEngineScript
         syntaxColors.put("include_class", ChatColor.GOLD);
         syntaxColors.put("include_package", ChatColor.GOLD);
         syntaxColors.put("require", ChatColor.GOLD);
+        syntaxColors.put("package_name", ChatColor.GOLD);
 
         for(String keyWord : syntaxColors.keySet())
         {
@@ -169,7 +171,20 @@ public class RubyScript extends ScriptEngineScript
     @Override
     protected String getDefaultImports()
     {
-        return ""; // Todo
+        String nl = ScriptUtil.getNewLine();
+        return  "require 'java'" + nl +
+                "include_package \"de.static_interface.sinklibrary\" " + nl +
+                "include_package \"de.static_interface.sinkscripts\" " + nl +
+                "include_package \"org.bukkit.block\" " + nl +
+                "include_package \"org.bukkit.event\" " + nl +
+                "include_package \"org.bukkit.entity\" " + nl +
+                "include_package \"org.bukkit.inventory\" " + nl +
+                "include_package \"org.bukkit.material\" " + nl +
+                "include_package \"org.bukkit.potion\" " + nl +
+                "include_package \"org.bukkit.util\" " + nl +
+                "include_package \"org.bukkit\" " + nl +
+                "include_package \"java.lang\" " + nl +
+                "include_package \"javax.script\" " + nl + nl;
     }
 
     @Override
@@ -182,6 +197,7 @@ public class RubyScript extends ScriptEngineScript
         importIdentifiers.add("include_class");
         importIdentifiers.add("require");
         importIdentifiers.add("include_package");
+        importIdentifiers.add("package_name");
         return importIdentifiers;
     }
 }

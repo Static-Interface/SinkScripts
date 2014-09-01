@@ -17,6 +17,7 @@
 
 package de.static_interface.sinkscripts.scriptengine.languages;
 
+import de.static_interface.sinkscripts.scriptengine.ScriptUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 
@@ -182,16 +183,18 @@ public class GroovyScript extends ScriptEngineScript
     @Override
     protected String getDefaultImports()
     {
-        String nl = System.getProperty("line.separator");
+        String nl = ScriptUtil.getNewLine();
         return  "import de.static_interface.sinklibrary.*;" + nl +
                 "import de.static_interface.sinkscripts.*;" + nl +
                 "import org.bukkit.block.*;" + nl +
+                "import org.bukkit.event.*;" + nl +
                 "import org.bukkit.entity.*;" + nl +
                 "import org.bukkit.inventory.*;" + nl +
                 "import org.bukkit.material.*;" + nl +
                 "import org.bukkit.potion.*; " + nl +
                 "import org.bukkit.util.*" + nl +
-                "import org.bukkit.*;" + nl + nl;
+                "import org.bukkit.*;" + nl +
+                "import javax.script.*;" + nl + nl;
     }
 
     //@Override
@@ -213,6 +216,7 @@ public class GroovyScript extends ScriptEngineScript
     {
         List<String> importIdentifiers = new ArrayList<>();
         importIdentifiers.add("import");
+        importIdentifiers.add("package");
         return importIdentifiers;
     }
 }
