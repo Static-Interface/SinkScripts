@@ -605,12 +605,13 @@ public abstract class ScriptLanguage
 
     public ShellInstance getConsoleShellInstance()
     {
+        if (consoleShellInstance == null)
+            consoleShellInstance = createNewShellInstance(Bukkit.getConsoleSender());
         return consoleShellInstance;
     }
 
     public final void init()
     {
-        consoleShellInstance = createNewShellInstance(Bukkit.getConsoleSender());
         try
         {
             onInit();
