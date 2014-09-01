@@ -25,62 +25,93 @@ import de.static_interface.sinkscripts.scriptengine.ScriptUtil;
 import de.static_interface.sinkscripts.scriptengine.languages.GroovyScript;
 import de.static_interface.sinkscripts.scriptengine.languages.JavaScript;
 import de.static_interface.sinkscripts.scriptengine.languages.LuaScript;
-import de.static_interface.sinkscripts.scriptengine.shellinstances.ShellInstance;
+import de.static_interface.sinkscripts.scriptengine.languages.PythonScript;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-import sun.plugin.security.PluginClassLoader;
 
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.HashMap;
+import java.net.URLClassLoader;
 import java.util.logging.Level;
 
 public class SinkScripts extends JavaPlugin
 {
-    public static File AUTOSTART_FOLDER;
     public static File SCRIPTS_FOLDER;
     public static File LIB_FOLDER;
-    static HashMap<String, ShellInstance> consoleInstances = new HashMap<>();
+    public static File FRAMEWORK_FOLDER;
+
     public void onEnable()
     {
         if ( !checkDependencies() ) return;
 
-        AUTOSTART_FOLDER = new File(SCRIPTS_FOLDER, "autostart");
         SCRIPTS_FOLDER = new File(SinkLibrary.getCustomDataFolder(), "scripts");
-        LIB_FOLDER = new File(SinkLibrary.getCustomDataFolder(), "libs");
+        LIB_FOLDER = new File(SCRIPTS_FOLDER, "libs");
+        FRAMEWORK_FOLDER = new File(LIB_FOLDER, "framework");
 
-        try {
+        if ((!LIB_FOLDER.exists() && !LIB_FOLDER.mkdirs()) || (!SCRIPTS_FOLDER.exists() && !SCRIPTS_FOLDER.mkdirs()))
+        {
+            SinkLibrary.getCustomLogger().severe("Coudln't create scripts or lib directory!");
+        }
+
+        registerScriptLanguages();
+
+        try
+        {
             File[] files = LIB_FOLDER.listFiles();
             if(files != null)
             {
-                getLogger().info("BukkitConsole: JARs found: " + files.length);
+                int i = 0;
                 for ( File file : files )
                 {
                     if ( file.getName().endsWith(".jar") )
                     {
-                        getLogger().info("SinkScripts: Loading lib:  - " + file.getName());
-                        PluginClassLoader loader = (PluginClassLoader) this.getClassLoader();
-                        Method m = loader.getClass().getDeclaredMethod("addURL", URL.class);
-                        m.setAccessible(true);
-                        m.invoke(loader, new File(LIB_FOLDER, file.getName()).toURI().toURL());
+                        getLogger().info("SinkScripts: Loading java library: " + file.getName());
+                        addURL(file.toURL());
+                        i++;
                     }
+
+                    //if(file.getName().endsWith(".so") ||file.getName().endsWith("dll"))
+                    //{
+                    //    getLogger().info("SinkScripts: Loading native library: " + file.getName());
+                    //    System.loadLibrary(file.getCanonicalPath());
+                    //    i++;
+                    //}
                 }
+                SinkLibrary.getCustomLogger().info("SinkScripts: Libraries loaded: " + i);
             }
         } catch (Exception e)
         {
             e.printStackTrace();
         }
 
+        for(ScriptLanguage language : ScriptUtil.getScriptLanguages())
+        {
+            try
+            {
+                language.init();
+            }
+            catch(Throwable e)
+            {
+                e.printStackTrace();
+            }
+        }
+
         registerCommands();
         registerListeners();
-        registerScriptLanguages();
 
-        if ( (!SCRIPTS_FOLDER.exists() && !SCRIPTS_FOLDER.mkdirs()) || (!AUTOSTART_FOLDER.exists() && !AUTOSTART_FOLDER.mkdirs()))
-        {
-            SinkLibrary.getCustomLogger().severe("Coudln't create scripts or autostart folder!");
-        }
         loadAutoStart();
+    }
+
+    public void addURL(URL url) throws Exception {
+        URLClassLoader classLoader
+                = (URLClassLoader) getClassLoader();
+        Class clazz= URLClassLoader.class;
+
+        // Use reflection
+        Method method= clazz.getDeclaredMethod("addURL", new Class[] { URL.class });
+        method.setAccessible(true);
+        method.invoke(classLoader, url);
     }
 
     private void registerScriptLanguages()
@@ -88,35 +119,20 @@ public class SinkScripts extends JavaPlugin
         ScriptUtil.register(new GroovyScript(this));
         ScriptUtil.register(new JavaScript(this));
         ScriptUtil.register(new LuaScript(this));
+        ScriptUtil.register(new PythonScript(this));
     }
 
-    public PluginClassLoader getPluginClassLoader()
+    public ClassLoader getClazzLoader()
     {
-        return (PluginClassLoader) getClassLoader();
+        return getClassLoader();
     }
 
     private void loadAutoStart()
     {
-        File[] files = AUTOSTART_FOLDER.listFiles();
-        if(files == null) return;
-        for(File file : files)
-        {
-            String ext = ScriptUtil.getFileExtension(file);
-            if(!ScriptUtil.scriptLanguages.containsKey(ext)) continue;
-            ScriptLanguage language = ScriptUtil.scriptLanguages.get(ext);
-            language.runCode(getConsoleShellInstance(language), file);
-        }
-    }
-
-    public static ShellInstance getConsoleShellInstance(ScriptLanguage language)
-    {
-        ShellInstance instance = consoleInstances.get(language.getFileExtension());
-        if(instance == null)
-        {
-            instance = language.createNewShellInstance(Bukkit.getConsoleSender());
-            consoleInstances.put(language.getFileExtension(), instance);
-        }
-        return instance;
+       for(ScriptLanguage language : ScriptUtil.getScriptLanguages())
+       {
+           language.onAutoStart();
+       }
     }
 
     private boolean checkDependencies()
@@ -139,7 +155,6 @@ public class SinkScripts extends JavaPlugin
     {
         Bukkit.getPluginManager().registerEvents(new ScriptChatListener(this), this);
     }
-
     private void registerCommands()
     {
         SinkLibrary.registerCommand("script", new ScriptCommand(this));

@@ -24,12 +24,33 @@ import org.bukkit.command.CommandSender;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 
 public class ScriptUtil
 {
-    public static ArrayList<String> enabledUsers = new ArrayList<>();
-    public static HashMap<String, ScriptLanguage> scriptLanguages = new HashMap<>();
+    private static ArrayList<String> enabledUsers = new ArrayList<>();
+    private static HashMap<String, ScriptLanguage> scriptLanguages = new HashMap<>();
+
+    public static Collection<ScriptLanguage> getScriptLanguages()
+    {
+        return scriptLanguages.values();
+    }
+
+    public static ScriptLanguage getScriptLanguageByExtension(String ext)
+    {
+        return scriptLanguages.get(ext);
+    }
+
+    public static ScriptLanguage getScriptLanguageByName(String name)
+    {
+        for(ScriptLanguage language : getScriptLanguages())
+        {
+            if(language.getName().equalsIgnoreCase(name)) return language;
+        }
+        return null;
+    }
+
     public static boolean isEnabled(CommandSender sender)
     {
         return enabledUsers.contains(getInternalName(sender));
@@ -48,29 +69,48 @@ public class ScriptUtil
         return sender instanceof IrcCommandSender ? "IRC_" + sender.getName() : sender.getName();
     }
 
-    public static void reportException(CommandSender sender, Exception e)
+    public static void reportException(CommandSender sender, Throwable e)
     {
-        sender.sendMessage(ChatColor.DARK_RED + "Unhandled exception: ");
-        String msg = e.getLocalizedMessage();
-        sender.sendMessage(ChatColor.RED + e.getClass().getCanonicalName() + (msg == null ? "" : ": " + msg));
+        if(e == null) return;
 
+        SinkLibrary.getCustomLogger().debug("[SinkScripts] Exception caused by " + sender.getName() + ": ");
+        e.printStackTrace();
+
+        sender.sendMessage(ChatColor.DARK_RED + "Unexpected " + ((e instanceof Exception) ? "exception: " : "error: "));
+        String[] lines = null;
+        if(e.getMessage() != null)
+            lines = e.getMessage().split(ScriptUtil.getNewLine());
+        String msg = null;
+        if(lines != null && lines.length > 0)
+            msg = lines[0] + (lines.length > 1 ? ScriptUtil.getNewLine() + lines[1] : "");
+        sender.sendMessage(ChatColor.RED + e.getClass().getCanonicalName() + (msg == null ? "" : ": " + msg));
         Throwable cause = e.getCause();
 
         //Report all "Caused By" exceptions but don't show stacktraces
         while(cause != null)
         {
-            msg = cause.getLocalizedMessage();
+            lines = null;
+            if(cause.getMessage() != null)
+                lines = cause.getMessage().split(ScriptUtil.getNewLine());
+            msg = null;
+            if(lines != null &&lines.length > 0)
+                msg = lines[0] + (lines.length > 1 ? ScriptUtil.getNewLine() + lines[1] : "");
             sender.sendMessage(ChatColor.RED + "Caused by: " + cause.getClass().getCanonicalName() + (msg == null ? "" : ": " + msg));
             cause = cause.getCause();
         }
-
-        SinkLibrary.getCustomLogger().debug("[SinkScripts] Exception caused by " + sender.getName() + ": ");
-        SinkLibrary.getCustomLogger().debug(e.toString());
     }
 
     public static void register(ScriptLanguage scriptLanguage)
     {
         scriptLanguages.put(scriptLanguage.getFileExtension(), scriptLanguage);
+        try
+        {
+            scriptLanguage.preInit();
+        }
+        catch(Throwable e)
+        {
+            e.printStackTrace();
+        }
     }
 
     public static String getFileExtension(File file)

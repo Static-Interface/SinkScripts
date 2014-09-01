@@ -22,7 +22,7 @@ import org.bukkit.command.CommandSender;
 public abstract class ShellInstance
 {
     private Object executor;
-    protected String code;
+    private String code;
     private CommandSender sender;
 
     public ShellInstance(CommandSender sender, Object executor)

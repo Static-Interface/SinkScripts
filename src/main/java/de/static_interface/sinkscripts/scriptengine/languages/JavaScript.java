@@ -58,7 +58,7 @@ public class JavaScript extends ScriptEngineScript
         syntaxColors.put("catch", defaultColor);
         syntaxColors.put("debugger", defaultColor);
         syntaxColors.put("else", defaultColor);
-        syntaxColors.put("false", defaultColor);
+        syntaxColors.put("false", ChatColor.GOLD);
         syntaxColors.put("function", defaultColor);
         syntaxColors.put("in", defaultColor);
         syntaxColors.put("long", defaultColor);
@@ -99,10 +99,10 @@ public class JavaScript extends ScriptEngineScript
         syntaxColors.put("float", defaultColor);
         syntaxColors.put("implements", defaultColor);
         syntaxColors.put("interface", defaultColor);
-        syntaxColors.put("null", defaultColor);
+        syntaxColors.put("null", ChatColor.GOLD);
         syntaxColors.put("return", defaultColor);
         syntaxColors.put("synchronized", defaultColor);
-        syntaxColors.put("true", defaultColor);
+        syntaxColors.put("true", ChatColor.GOLD);
         syntaxColors.put("volatile", defaultColor);
         syntaxColors.put("isFinite", defaultColor);
         syntaxColors.put("NaN", defaultColor);
@@ -125,27 +125,24 @@ public class JavaScript extends ScriptEngineScript
 
         //Set class color, its not the best solution, because variables may also start with an uppercase name
         boolean classStart = false;
-        boolean isString = false;
         char lastChar = 0;
         String tmp = "";
         for(char Char : code.toCharArray())
         {
-            if(Char == '"' && lastChar != '\\')
-            {
-                isString = !isString;
-            }
-            if(!isString && ( !Character.isAlphabetic(lastChar) || lastChar == 0) && Character.isUpperCase(Char) && !classStart)
+            boolean t = false;
+            if(!Character.isAlphabetic(lastChar) && Character.isUpperCase(Char) && !classStart)
             {
                 classStart = true;
+                t = true;
             }
 
-            if(!classStart || isString)
+            if(!classStart)
             {
                 tmp += Char;
                 continue;
             }
 
-            if(!Character.isAlphabetic(Char))//if(Char == '.' || Char == ' ' || Char == ';' || Char == '+' || Char == '-' || Char == '*' || Char == ':' || Char == '/')
+            if(!Character.isAlphabetic(Char) && !t)//if(Char == '.' || Char == ' ' || Char == ';' || Char == '+' || Char == '-' || Char == '*' || Char == ':' || Char == '/')
             {
                 classStart = false;
                 tmp += ChatColor.RESET + "" + Char;

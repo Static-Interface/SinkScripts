@@ -74,27 +74,24 @@ public class LuaScript extends ScriptEngineScript
 
         //Set class color, its not the best solution, because variables may also start with an uppercase name
         boolean classStart = false;
-        boolean isString = false;
         char lastChar = 0;
         String tmp = "";
         for(char Char : code.toCharArray())
         {
-            if(Char == '\'' && lastChar != '\\')
-            {
-                isString = !isString;
-            }
-            if(!isString && ( !Character.isAlphabetic(lastChar) || lastChar == 0) && Character.isUpperCase(Char) && !classStart)
+            boolean t = false;
+            if(!Character.isAlphabetic(lastChar) && Character.isUpperCase(Char) && !classStart)
             {
                 classStart = true;
+                t = true;
             }
 
-            if(!classStart || isString)
+            if(!classStart)
             {
                 tmp += Char;
                 continue;
             }
 
-            if(!Character.isAlphabetic(Char))//if(Char == '.' || Char == ' ' || Char == ';' || Char == '+' || Char == '-' || Char == '*' || Char == ':' || Char == '/')
+            if(!Character.isAlphabetic(Char) && !t)//if(Char == '.' || Char == ' ' || Char == ';' || Char == '+' || Char == '-' || Char == '*' || Char == ':' || Char == '/')
             {
                 classStart = false;
                 tmp += ChatColor.RESET + "" + Char;
@@ -118,10 +115,7 @@ public class LuaScript extends ScriptEngineScript
                 {
                     tmp+= codeColor;
                 }
-                else
-                {
-                    tmp += Char;
-                }
+                tmp += Char;
                startChar = 0;
             }
             else if (Char == '\'' || Char == '"' || (Char == '[' && lastChar == '['))

@@ -53,7 +53,7 @@ public abstract class ScriptEngineScript extends ScriptLanguage
     @Override
     public ShellInstance createNewShellInstance(CommandSender sender)
     {
-        ScriptEngine e = new ScriptEngineManager(((SinkScripts)plugin).getPluginClassLoader()).getEngineByName(engineName);
+        ScriptEngine e = new ScriptEngineManager(((SinkScripts)plugin).getClazzLoader()).getEngineByName(engineName);
         return new ScriptEngineShellInstance(sender, e);
     }
 

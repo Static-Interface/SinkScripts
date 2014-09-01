@@ -87,7 +87,7 @@ public class GroovyScript extends ScriptLanguage
 
         syntaxColors.put("new", defaultColor);
         syntaxColors.put("this", defaultColor);
-        syntaxColors.put("null", defaultColor);
+        syntaxColors.put("null", ChatColor.GOLD);
 
         syntaxColors.put("if", defaultColor);
         syntaxColors.put("else", defaultColor);
@@ -115,27 +115,24 @@ public class GroovyScript extends ScriptLanguage
 
         //Set class color, its not the best solution, because variables may also start with an uppercase name
         boolean classStart = false;
-        boolean isString = false;
         char lastChar = 0;
         String tmp = "";
         for(char Char : code.toCharArray())
         {
-            if(Char == '"' && lastChar != '\\')
-            {
-                isString = !isString;
-            }
-            if(!isString && ( !Character.isAlphabetic(lastChar) || lastChar == 0) && Character.isUpperCase(Char) && !classStart)
+            boolean t = false;
+            if(!Character.isAlphabetic(lastChar) && Character.isUpperCase(Char) && !classStart)
             {
                 classStart = true;
+                t = true;
             }
 
-            if(!classStart || isString)
+            if(!classStart)
             {
                 tmp += Char;
                 continue;
             }
 
-            if(!Character.isAlphabetic(Char))//if(Char == '.' || Char == ' ' || Char == ';' || Char == '+' || Char == '-' || Char == '*' || Char == ':' || Char == '/')
+            if(!Character.isAlphabetic(Char) && !t)//if(Char == '.' || Char == ' ' || Char == ';' || Char == '+' || Char == '-' || Char == '*' || Char == ':' || Char == '/')
             {
                 classStart = false;
                 tmp += ChatColor.RESET + "" + Char;

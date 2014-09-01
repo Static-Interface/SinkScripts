@@ -18,7 +18,6 @@
 package de.static_interface.sinkscripts.scriptengine;
 
 import de.static_interface.sinklibrary.SinkLibrary;
-import de.static_interface.sinkscripts.SinkScripts;
 import de.static_interface.sinkscripts.scriptengine.shellinstances.DummyShellInstance;
 import de.static_interface.sinkscripts.scriptengine.shellinstances.ShellInstance;
 import org.bukkit.Bukkit;
@@ -45,11 +44,23 @@ public abstract class ScriptLanguage
     protected Plugin plugin;
     protected String name;
 
+    private ShellInstance consoleShellInstance;
+
+    public static File SCRIPTLANGUAGE_DIRECTORY;
+    public static File FRAMEWORK_FOLDER;
+
     public ScriptLanguage(Plugin plugin, String name, String fileExtension)
     {
         this.fileExtension = fileExtension.toLowerCase();
         this.plugin = plugin;
         this.name = name;
+        SCRIPTLANGUAGE_DIRECTORY = new File(SCRIPTS_FOLDER, name);
+        FRAMEWORK_FOLDER = new File(SCRIPTLANGUAGE_DIRECTORY, "framework");
+
+        if((!SCRIPTLANGUAGE_DIRECTORY.exists() && !SCRIPTLANGUAGE_DIRECTORY.mkdirs()) || (!FRAMEWORK_FOLDER.exists() && !FRAMEWORK_FOLDER.mkdirs()))
+        {
+            throw new RuntimeException("Couldn't create scriptlanguage or framework directory!");
+        }
     }
 
     public String getName()
@@ -105,10 +116,10 @@ public abstract class ScriptLanguage
 
     private String loadFile(String scriptName) throws IOException
     {
-        File scriptFile = new File(SCRIPTS_FOLDER, scriptName + "." + fileExtension);
+        File scriptFile = new File(SCRIPTLANGUAGE_DIRECTORY, scriptName + "." + fileExtension);
         if(!scriptFile.exists())
         {
-            scriptFile = searchRecursively(scriptName, SCRIPTS_FOLDER);
+            scriptFile = searchRecursively(scriptName, SCRIPTLANGUAGE_DIRECTORY);
         }
         return loadFile(scriptFile);
     }
@@ -152,7 +163,7 @@ public abstract class ScriptLanguage
         }
         if(sender instanceof ConsoleCommandSender )
         {
-            shellInstance = SinkScripts.getConsoleShellInstance(language);
+            shellInstance = language.getConsoleShellInstance();
         }
         else
             shellInstance = shellInstances.get(ScriptUtil.getInternalName(sender));
@@ -239,7 +250,7 @@ public abstract class ScriptLanguage
 
                         case ".setlanguage":
                             ScriptLanguage newLanguage = null;
-                            for(ScriptLanguage lang : ScriptUtil.scriptLanguages.values())
+                            for(ScriptLanguage lang : ScriptUtil.getScriptLanguages())
                             {
                                 if( lang.getName().equals(args[1]) || lang.getFileExtension().equals(args[1]) )
                                 {
@@ -254,7 +265,7 @@ public abstract class ScriptLanguage
                             }
                             if ( sender instanceof ConsoleCommandSender )
                             {
-                                shellInstance = SinkScripts.getConsoleShellInstance(language);
+                                shellInstance = language.getConsoleShellInstance();
                             }
                             else
                             {
@@ -265,7 +276,7 @@ public abstract class ScriptLanguage
                             break;
 
                         case ".clear":
-                            shellInstance.setCode(language.onUpdateImports(""));
+                            shellInstance.setCode("");
                             sender.sendMessage(ChatColor.DARK_RED + "History cleared");
                             break;
 
@@ -295,12 +306,11 @@ public abstract class ScriptLanguage
                                 sender.sendMessage(ChatColor.DARK_RED + "Too few arguments! .load <File>");
                                 break;
                             }
-                            code = language.onUpdateImports("");
                             String scriptName = args[1];
 
                             try
                             {
-                                shellInstance.setCode(code + language.loadFile(scriptName));
+                                shellInstance.setCode(language.loadFile(scriptName) + code);
                             }
                             catch ( FileNotFoundException ignored )
                             {
@@ -317,14 +327,13 @@ public abstract class ScriptLanguage
                         }
 
                         case ".save":
-                            code = language.onUpdateImports(code);
                             if ( args.length < 2 )
                             {
                                 sender.sendMessage(ChatColor.DARK_RED + "Too few arguments! .save <File>");
                                 break;
                             }
                             String scriptName = args[1];
-                            File scriptFile = new File(SCRIPTS_FOLDER, scriptName + "." + language.getFileExtension());
+                            File scriptFile = new File(SCRIPTLANGUAGE_DIRECTORY, scriptName + "." + language.getFileExtension());
                             if ( scriptFile.exists() )
                             {
                                 if ( !scriptFile.delete() ) throw new RuntimeException("Couldn't override " + scriptFile + " (File.delete() returned false)!");
@@ -390,7 +399,7 @@ public abstract class ScriptLanguage
 
                                 if (clear)
                                 {
-                                    shellInstance.setCode(language.onUpdateImports(""));
+                                    shellInstance.setCode("");
                                 }
                             }
                             catch ( Exception e )
@@ -400,14 +409,12 @@ public abstract class ScriptLanguage
                             break;
 
                         case ".history":
-                            code = language.onUpdateImports(code);
                             sender.sendMessage(ChatColor.GOLD + "-------|History|-------");
                             sender.sendMessage(ChatColor.WHITE + language.formatCode(code));
                             sender.sendMessage(ChatColor.GOLD + "-----------------------");
                             break;
 
                         default:
-                            code = language.onUpdateImports(code);
                             if ( mode.startsWith(".") )
                             {
                                 sender.sendMessage('"' + mode + "\" is not a valid command");
@@ -418,7 +425,7 @@ public abstract class ScriptLanguage
                     }
                     shellInstances.put(name, shellInstance);
                 }
-                catch(Exception e)
+                catch(Throwable e)
                 {
                     ScriptUtil.reportException(sender, e);
                 }
@@ -525,4 +532,75 @@ public abstract class ScriptLanguage
     public abstract ShellInstance createNewShellInstance(CommandSender sender);
     public abstract void setVariable(ShellInstance instance, String name, Object value);
     public abstract List<String> getImportIdentifier();
+
+    public void onAutoStart()
+    {
+        File autostartDirectory = new File(SCRIPTLANGUAGE_DIRECTORY, "autostart");
+        if(!autostartDirectory.exists() && !autostartDirectory.mkdirs())
+        {
+            throw new RuntimeException("Couldn't create autostart directory!");
+        }
+        autoStartRecur(autostartDirectory);
+    }
+
+    private void autoStartRecur(File directory)
+    {
+        File[] files = directory.listFiles();
+        if(files == null) return;
+        for (File file : files)
+        {
+            if (file.isDirectory())
+            {
+                autoStartRecur(file);
+            }
+            else
+            {
+                if( !ScriptUtil.getFileExtension(file).equals(getFileExtension()) ) continue;
+                runCode(getConsoleShellInstance(), file);
+            }
+        }
+    }
+
+    public void preInit()
+    {
+        try
+        {
+            onPreInit();
+        }
+        catch(Throwable tr)
+        {
+            tr.printStackTrace();
+        }
+    }
+
+    /**
+     * Called before the libraries are loaded, you can e.g. setuo enviroment values here
+     * Don't try to call the library or classes from it
+     */
+    public void onPreInit() { }
+
+
+
+    public ShellInstance getConsoleShellInstance()
+    {
+        return consoleShellInstance;
+    }
+
+    public final void init()
+    {
+        consoleShellInstance = createNewShellInstance(Bukkit.getConsoleSender());
+        try
+        {
+            onInit();
+        }
+        catch(Throwable tr)
+        {
+            tr.printStackTrace();
+        }
+    }
+
+    /**
+     * Called when the libraries has been loaded, you can setup the language here
+     */
+    public void onInit() { }
 }
