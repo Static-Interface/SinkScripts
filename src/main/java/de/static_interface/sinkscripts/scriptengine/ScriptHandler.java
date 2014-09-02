@@ -102,6 +102,9 @@ public class ScriptHandler
         final boolean clear = isExecute && (line.contains(" --clear"));
         final boolean noImports = isExecute && (line.contains(" --noimports"));
 
+        boolean isSave = line.startsWith(".save");
+        final boolean isAutostartSave = isSave && line.contains(" --autostart");
+
         final ScriptLanguage language = getLanguage(sender);
         if(language == null && (!line.startsWith(".setlanguage") && !line.startsWith(".help") && !line.startsWith(".listlanguages")))
         {
@@ -301,7 +304,13 @@ public class ScriptHandler
                                 break;
                             }
                             String scriptName = args[1];
-                            File scriptFile = new File(language.SCRIPTLANGUAGE_DIRECTORY, scriptName + "." + language.getFileExtension());
+                            File scriptFile;
+
+                            if(isAutostartSave)
+                                scriptFile= new File(language.AUTOSTART_DIRECTORY, scriptName + "." + language.getFileExtension());
+                            else
+                                scriptFile= new File(language.SCRIPTLANGUAGE_DIRECTORY, scriptName + "." + language.getFileExtension());
+
                             if ( scriptFile.exists() )
                             {
                                 if ( !scriptFile.delete() ) throw new RuntimeException("Couldn't override " + scriptFile + " (File.delete() returned false)!");

@@ -39,6 +39,7 @@ public abstract class ScriptLanguage
 
     public File SCRIPTLANGUAGE_DIRECTORY;
     public File FRAMEWORK_FOLDER;
+    public File AUTOSTART_DIRECTORY;
 
     public ScriptLanguage(Plugin plugin, String name, String fileExtension)
     {
@@ -47,10 +48,12 @@ public abstract class ScriptLanguage
         this.name = name;
         SCRIPTLANGUAGE_DIRECTORY = new File(SCRIPTS_FOLDER, name);
         FRAMEWORK_FOLDER = new File(SCRIPTLANGUAGE_DIRECTORY, "framework");
-
-        if((!SCRIPTLANGUAGE_DIRECTORY.exists() && !SCRIPTLANGUAGE_DIRECTORY.mkdirs()) || (!FRAMEWORK_FOLDER.exists() && !FRAMEWORK_FOLDER.mkdirs()))
+        AUTOSTART_DIRECTORY = new File(SCRIPTLANGUAGE_DIRECTORY, "autostart");
+        if((!SCRIPTLANGUAGE_DIRECTORY.exists() && !SCRIPTLANGUAGE_DIRECTORY.mkdirs())
+                || (!FRAMEWORK_FOLDER.exists() && !FRAMEWORK_FOLDER.mkdirs())
+                || (!AUTOSTART_DIRECTORY.exists() && ! AUTOSTART_DIRECTORY.mkdirs()))
         {
-            throw new RuntimeException("Couldn't create scriptlanguage or framework directory!");
+            throw new RuntimeException(getName() + ": Couldn't create required directories!");
         }
     }
 
@@ -168,12 +171,7 @@ public abstract class ScriptLanguage
 
     public void onAutoStart()
     {
-        File autostartDirectory = new File(SCRIPTLANGUAGE_DIRECTORY, "autostart");
-        if(!autostartDirectory.exists() && !autostartDirectory.mkdirs())
-        {
-            throw new RuntimeException("Couldn't create autostart directory!");
-        }
-        autoStartRecur(autostartDirectory);
+        autoStartRecur(AUTOSTART_DIRECTORY);
     }
 
     private void autoStartRecur(File directory)
