@@ -323,9 +323,6 @@ public class ScriptHandler
                             break;
 
                         case ".execute":
-                            if(!noImports)
-                                code = language.onUpdateImports(code);
-
                             language.setVariable(shellInstance, "me", SinkLibrary.getUser(sender));
                             language.setVariable(shellInstance, "plugin", plugin);
                             language.setVariable(shellInstance, "server", Bukkit.getServer());
@@ -363,6 +360,9 @@ public class ScriptHandler
                                 {
                                     code = Util.loadFile(args[1], language);
                                 }
+
+                                if(!noImports)
+                                    code = language.onUpdateImports(code);
 
                                 SinkLibrary.getCustomLogger().logToFile(Level.INFO, sender.getName() + " executed script: " + nl + code);
                                 String result = String.valueOf(language.eval(shellInstance, code));
