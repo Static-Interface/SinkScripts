@@ -203,7 +203,6 @@ public class RubyScript extends ScriptEngineScript
         importIdentifiers.add("include");
         importIdentifiers.add("include_class");
         importIdentifiers.add("require");
-        importIdentifiers.add("include_package");
         importIdentifiers.add("package_name");
         return importIdentifiers;
     }

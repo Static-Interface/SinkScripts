@@ -57,7 +57,7 @@ public class ScriptChatListener implements Listener
             return;
         }
 
-        String currentLine = event.getMessage().trim();
+        String currentLine = event.getMessage();
         String ircCommandPrefix = getIrcCommandPrefix();
         if(currentLine.startsWith(ircCommandPrefix)) return;
         ScriptHandler.handleLine(sender, currentLine, plugin);
