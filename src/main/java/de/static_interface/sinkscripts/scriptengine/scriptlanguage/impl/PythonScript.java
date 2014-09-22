@@ -15,7 +15,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.static_interface.sinkscripts.scriptengine.scriptlanguages;
+package de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl;
 
 import de.static_interface.sinklibrary.SinkLibrary;
 import org.bukkit.ChatColor;
@@ -187,7 +187,7 @@ public class PythonScript extends ScriptEngineScript
         }
         else
         {
-            SinkLibrary.getCustomLogger().warning("Warning! Couldn't find jynx! Missing directory: " + jynxDirectory.getAbsolutePath());
+            SinkLibrary.getInstance().getCustomLogger().warning("Warning! Couldn't find jynx! Missing directory: " + jynxDirectory.getAbsolutePath());
         }
     }
 
@@ -196,7 +196,7 @@ public class PythonScript extends ScriptEngineScript
         File setup = new File(jynx, "setup.py");
         if ( setup.exists() )
         {
-            eval(getConsoleShellInstance(), setup);
+            run(getConsoleShellInstance(), setup, false, true);
         }
     }
 }

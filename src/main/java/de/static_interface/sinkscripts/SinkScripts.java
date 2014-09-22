@@ -18,11 +18,14 @@
 package de.static_interface.sinkscripts;
 
 import de.static_interface.sinklibrary.SinkLibrary;
-import de.static_interface.sinklibrary.exceptions.NotInitializedException;
-import de.static_interface.sinkscripts.commands.ScriptCommand;
+import de.static_interface.sinkscripts.command.ScriptCommand;
 import de.static_interface.sinkscripts.scriptengine.ScriptHandler;
-import de.static_interface.sinkscripts.scriptengine.ScriptLanguage;
-import de.static_interface.sinkscripts.scriptengine.scriptlanguages.*;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguage;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.GroovyScript;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.JavaScript;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.LuaScript;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.PythonScript;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.RubyScript;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -42,13 +45,13 @@ public class SinkScripts extends JavaPlugin
     {
         if ( !checkDependencies() ) return;
 
-        SCRIPTS_FOLDER = new File(SinkLibrary.getCustomDataFolder(), "scripts");
+        SCRIPTS_FOLDER = new File(SinkLibrary.getInstance().getCustomDataFolder(), "scripts");
         LIB_FOLDER = new File(SCRIPTS_FOLDER, "libs");
         FRAMEWORK_FOLDER = new File(LIB_FOLDER, "framework");
 
         if ((!LIB_FOLDER.exists() && !LIB_FOLDER.mkdirs()) || (!SCRIPTS_FOLDER.exists() && !SCRIPTS_FOLDER.mkdirs()))
         {
-            SinkLibrary.getCustomLogger().severe("Coudln't create scripts or lib directory!");
+            SinkLibrary.getInstance().getCustomLogger().severe("Coudln't create scripts or lib directory!");
         }
         setupProperties();
         registerCommands();
@@ -76,7 +79,7 @@ public class SinkScripts extends JavaPlugin
                     //    i++;
                     //}
                 }
-                SinkLibrary.getCustomLogger().info("SinkScripts: Libraries loaded: " + i);
+                SinkLibrary.getInstance().getCustomLogger().info("SinkScripts: Libraries loaded: " + i);
             }
         } catch (Exception e)
         {
@@ -142,10 +145,6 @@ public class SinkScripts extends JavaPlugin
             return false;
         }
 
-        if ( !SinkLibrary.initialized )
-        {
-            throw new NotInitializedException("SinkLibrary is not initialized!");
-        }
         return true;
     }
 
@@ -155,6 +154,6 @@ public class SinkScripts extends JavaPlugin
     }
     private void registerCommands()
     {
-        SinkLibrary.registerCommand("script", new ScriptCommand(this));
+        SinkLibrary.getInstance().registerCommand("script", new ScriptCommand(this));
     }
 }

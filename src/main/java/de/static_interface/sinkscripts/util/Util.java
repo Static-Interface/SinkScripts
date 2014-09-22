@@ -18,7 +18,7 @@
 package de.static_interface.sinkscripts.util;
 
 import de.static_interface.sinklibrary.SinkLibrary;
-import de.static_interface.sinkscripts.scriptengine.ScriptLanguage;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguage;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
@@ -47,7 +47,7 @@ public class Util
     {
         if(e == null) return;
 
-        SinkLibrary.getCustomLogger().debug("[SinkScripts] Exception caused by " + sender.getName() + ": ");
+        SinkLibrary.getInstance().getCustomLogger().debug("[SinkScripts] Exception caused by " + sender.getName() + ": ");
         e.printStackTrace();
 
         sender.sendMessage(ChatColor.DARK_RED + "Unexpected " + ((e instanceof Exception) ? "exception: " : "error: "));
@@ -99,7 +99,7 @@ public class Util
         File scriptFile = new File(language.SCRIPTLANGUAGE_DIRECTORY, scriptName + "." + language.getFileExtension());
         if(!scriptFile.exists())
         {
-            SinkLibrary.getCustomLogger().debug("Couldn't find file: " + scriptFile.getAbsolutePath());
+            SinkLibrary.getInstance().getCustomLogger().debug("Couldn't find file: " + scriptFile.getAbsolutePath());
             scriptFile = Util.searchRecursively(scriptName, language.SCRIPTLANGUAGE_DIRECTORY, language);
         }
         return loadFile(scriptFile);

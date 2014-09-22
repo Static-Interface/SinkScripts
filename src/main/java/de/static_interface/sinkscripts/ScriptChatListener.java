@@ -18,8 +18,8 @@
 package de.static_interface.sinkscripts;
 
 import de.static_interface.sinklibrary.SinkLibrary;
-import de.static_interface.sinklibrary.events.IrcReceiveMessageEvent;
-import de.static_interface.sinklibrary.irc.IrcCommandSender;
+import de.static_interface.sinklibrary.event.IrcReceiveMessageEvent;
+import de.static_interface.sinklibrary.sender.IrcCommandSender;
 import de.static_interface.sinkscripts.scriptengine.ScriptHandler;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -70,14 +70,13 @@ public class ScriptChatListener implements Listener
         ScriptHandler.setEnabled(event.getPlayer(), false);
         if ( ScriptHandler.getShellInstances().containsKey(name) )
         {
-            ScriptHandler.getShellInstances().get(name).clearCache();
             ScriptHandler.getShellInstances().remove(name);
         }
     }
 
     public static String getIrcCommandPrefix()
     {
-        if(!SinkLibrary.ircAvailable) throw new IllegalStateException("SinkIRC is not available!");
+        if(!SinkLibrary.getInstance().isIrcAvailable()) throw new IllegalStateException("SinkIRC is not available!");
         try
         {
             Class<?> c = Class.forName("de.static_interface.sinkirc.IrcUtil");

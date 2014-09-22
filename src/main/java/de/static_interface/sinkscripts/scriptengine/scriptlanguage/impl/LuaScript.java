@@ -15,7 +15,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.static_interface.sinkscripts.scriptengine.scriptlanguages;
+package de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl;
 
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;

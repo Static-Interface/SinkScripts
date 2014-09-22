@@ -15,9 +15,12 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.static_interface.sinkscripts.scriptengine;
+package de.static_interface.sinkscripts.scriptengine.scriptlanguage;
 
-import de.static_interface.sinkscripts.scriptengine.shellinstances.ShellInstance;
+import static de.static_interface.sinkscripts.SinkScripts.SCRIPTS_FOLDER;
+
+import de.static_interface.sinklibrary.SinkLibrary;
+import de.static_interface.sinkscripts.scriptengine.shellinstance.ShellInstance;
 import de.static_interface.sinkscripts.util.Util;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -26,8 +29,7 @@ import org.bukkit.plugin.Plugin;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-
-import static de.static_interface.sinkscripts.SinkScripts.SCRIPTS_FOLDER;
+import java.util.logging.Level;
 
 public abstract class ScriptLanguage
 {
@@ -69,10 +71,27 @@ public abstract class ScriptLanguage
 
     public abstract String formatCode(String code);
 
-    public abstract Object eval(ShellInstance instance, String code);
-
-    public Object eval(ShellInstance instance, File file)
+    public Object run(ShellInstance instance, String code, boolean skipImports, boolean clear)
     {
+        SinkLibrary.getInstance().getCustomLogger().logToFile(Level.INFO, instance.getSender().getName() + " executed script: " + code);
+
+        if(!skipImports)
+        {
+            code = onUpdateImports(code);
+        }
+
+        if (clear)
+        {
+            instance.setCode("");
+        }
+
+        return eval(instance, code);
+    }
+
+    protected Object run(ShellInstance instance, File file, boolean skipImports, boolean clear)
+    {
+        SinkLibrary.getInstance().getCustomLogger().logToFile(Level.INFO, instance.getSender().getName() + " executed script file: " + file);
+        setVariable(instance, "scriptfile", file);
         try
         {
             return eval(instance, Util.loadFile(file));
@@ -83,15 +102,16 @@ public abstract class ScriptLanguage
         }
     }
 
+    public abstract Object eval(ShellInstance instance, String code);
+
     /**
-     * Does not work with chars
-     * @param commandArgs Args to data, first string is skipped
-     * @return Value
+     * @param commandArgs String[] you want to convert to value
+     * @return primite Value
      */
 
-    protected Object getValue(String[] commandArgs)
+    public Object getValue(String[] commandArgs)
     {
-        String commandArg = commandArgs[1];
+        String commandArg = commandArgs[0];
 
         if ( commandArg.equalsIgnoreCase("null") ) return null;
 
@@ -128,25 +148,25 @@ public abstract class ScriptLanguage
 
         //Parse Booleans
         if(commandArg.equalsIgnoreCase("true") ||commandArg.equals("1"))
-            return Boolean.TRUE;
+            return true;
 
         else if (commandArg.equalsIgnoreCase("false") ||commandArg.equals("0"))
-            return Boolean.FALSE;
+            return false;
 
         if ( commandArg.startsWith("'") && commandArg.endsWith("'") && commandArg.length() == 3 )
         {
-            return commandArg.toCharArray()[1]; // ???
+            return commandArg.toCharArray()[1]; // Value is char
         }
 
 
         String tmp = "";
-        for ( int i = 1; i < commandArgs.length; i++ )
+        for ( String s : commandArgs )
         {
             if ( tmp.equals("") )
             {
-                tmp = commandArgs[i];
+                tmp = s;
             }
-            else tmp += " " + commandArgs[i];
+            else tmp += " " + s;
         }
         if ( tmp.startsWith("\"") && tmp.endsWith("\"") )
         {
@@ -187,7 +207,7 @@ public abstract class ScriptLanguage
             else
             {
                 if( !Util.getFileExtension(file).equals(getFileExtension()) ) continue;
-                eval(getConsoleShellInstance(), file);
+                run(getConsoleShellInstance(), file, false, true);
             }
         }
     }

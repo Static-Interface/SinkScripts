@@ -18,9 +18,10 @@
 package de.static_interface.sinkscripts.scriptengine;
 
 import de.static_interface.sinklibrary.SinkLibrary;
-import de.static_interface.sinklibrary.irc.IrcCommandSender;
-import de.static_interface.sinkscripts.scriptengine.shellinstances.DummyShellInstance;
-import de.static_interface.sinkscripts.scriptengine.shellinstances.ShellInstance;
+import de.static_interface.sinklibrary.sender.IrcCommandSender;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguage;
+import de.static_interface.sinkscripts.scriptengine.shellinstance.ShellInstance;
+import de.static_interface.sinkscripts.scriptengine.shellinstance.impl.DummyShellInstance;
 import de.static_interface.sinkscripts.util.Util;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -30,7 +31,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.BlockIterator;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -119,7 +122,7 @@ public class ScriptHandler
             shellInstance = shellInstances.get(ScriptHandler.getInternalName(sender));
         if(shellInstance == null)
         {
-            SinkLibrary.getCustomLogger().log(Level.INFO, "Initializing ShellInstance for " + sender.getName());
+            SinkLibrary.getInstance().getCustomLogger().log(Level.INFO, "Initializing ShellInstance for " + sender.getName());
 
             if(language == null)
                 shellInstance = new DummyShellInstance(sender, null); // Used for .setLanguage
@@ -189,7 +192,7 @@ public class ScriptHandler
                         if (!isImport) code = prevCode + nl + currentLine;
                         shellInstance.setCode(code);
                     }
-                    SinkLibrary.getUser(sender).sendDebugMessage(ChatColor.GOLD + "Script mode: " + ChatColor.RED + mode);
+                    SinkLibrary.getInstance().getUser(sender).sendDebugMessage(ChatColor.GOLD + "Script mode: " + ChatColor.RED + mode);
 
                     /* Todo:
                      * add permissions for commands, e.g. sinkscripts.use.help, sinkscripts.use.executefile etc...
@@ -260,9 +263,15 @@ public class ScriptHandler
                             {
                                 String[] commandArgs = line.split("=");
                                 String variableName = commandArgs[0].split(" ")[1];
-                                Object value = language.getValue(commandArgs);
+                                String[] rawValue = new String[commandArgs.length - 1];
+                                for(int i = 0; i < rawValue.length; i++)
+                                {
+                                    rawValue[i] = commandArgs[i-1];
+                                }
+
+                                Object value = language.getValue(rawValue);
                                 language.setVariable(shellInstance, variableName, value);
-                                sender.sendMessage(ChatColor.BLUE + variableName + ChatColor.RESET +" has been successfully set to " + ChatColor.RED + value + ChatColor.RESET +" (" + value.getClass().getSimpleName() + ")");
+                                sender.sendMessage(ChatColor.BLUE + variableName + ChatColor.RESET +" has been successfully set to " + ChatColor.RED + value + ChatColor.RESET +" (" + ChatColor.BLUE + value.getClass().getSimpleName() + ")");
                             }
                             catch ( Exception e )
                             {
@@ -332,11 +341,11 @@ public class ScriptHandler
                             break;
 
                         case ".execute":
-                            language.setVariable(shellInstance, "me", SinkLibrary.getUser(sender));
+                            language.setVariable(shellInstance, "me", SinkLibrary.getInstance().getUser(sender));
                             language.setVariable(shellInstance, "plugin", plugin);
                             language.setVariable(shellInstance, "server", Bukkit.getServer());
                             language.setVariable(shellInstance, "players", Bukkit.getOnlinePlayers());
-                            language.setVariable(shellInstance, "users", SinkLibrary.getOnlineUsers());
+                            language.setVariable(shellInstance, "users", SinkLibrary.getInstance().getOnlineUsers());
                             language.setVariable(shellInstance, "sender", sender);
                             language.setVariable(shellInstance, "language", language);
 
@@ -365,23 +374,17 @@ public class ScriptHandler
                                         }
                                     }
                                 }
+                                String result;
                                 if ( args.length >= 2 && !isParameter )
                                 {
-                                    code = Util.loadFile(args[1], language);
+                                    result = String.valueOf(language.run(shellInstance, args[1], noImports, clear));
                                 }
-
-                                if(!noImports)
-                                    code = language.onUpdateImports(code);
-
-                                SinkLibrary.getCustomLogger().logToFile(Level.INFO, sender.getName() + " executed script: " + nl + code);
-                                String result = String.valueOf(language.eval(shellInstance, code));
+                                else
+                                {
+                                    result = String.valueOf(language.run(shellInstance, code, noImports, clear));
+                                }
 
                                 if ( !skipOutput ) sender.sendMessage(ChatColor.AQUA + "Output: " + ChatColor.GREEN + language.formatCode(result));
-
-                                if (clear)
-                                {
-                                    shellInstance.setCode("");
-                                }
                             }
                             catch ( Exception e )
                             {

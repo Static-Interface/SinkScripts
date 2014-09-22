@@ -15,13 +15,13 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.static_interface.sinkscripts.scriptengine.scriptlanguages;
+package de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl;
 
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinkscripts.SinkScripts;
-import de.static_interface.sinkscripts.scriptengine.ScriptLanguage;
-import de.static_interface.sinkscripts.scriptengine.shellinstances.ScriptEngineShellInstance;
-import de.static_interface.sinkscripts.scriptengine.shellinstances.ShellInstance;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguage;
+import de.static_interface.sinkscripts.scriptengine.shellinstance.impl.ScriptEngineShellInstance;
+import de.static_interface.sinkscripts.scriptengine.shellinstance.ShellInstance;
 import de.static_interface.sinkscripts.util.JoinClassLoader;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;

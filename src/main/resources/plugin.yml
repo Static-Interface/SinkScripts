@@ -1,6 +1,6 @@
 name: SinkScripts
 version: ${project.version}
-description: Provides support for groovy scripts.
+description: Provides support for scripts.
 author: Trojaner
 website: http://static-interface.de
 main: de.static_interface.sinkscripts.SinkScripts
@@ -10,7 +10,7 @@ commands:
   script:
     description: Allows to execute groovy scripts
     permission: sinkscript.execute
-    usage: "/script <groovy code>"
+    usage: "/script <commands>"
 
 permissions:
  sinkscript.execute:

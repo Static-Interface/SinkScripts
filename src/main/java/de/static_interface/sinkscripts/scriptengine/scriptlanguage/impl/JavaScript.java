@@ -15,9 +15,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.static_interface.sinkscripts.scriptengine.scriptlanguages;
+package de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl;
 
-import de.static_interface.sinkscripts.util.Util;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 
@@ -25,11 +24,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class GroovyScript extends ScriptEngineScript
+public class JavaScript extends ScriptEngineScript
 {
-    public GroovyScript(Plugin plugin)
+    public JavaScript(Plugin plugin)
     {
-        super(plugin, "groovy", "groovy", "groovy");
+        super(plugin, "javascript", "js", "JavaScript");
     }
 
     @Override
@@ -44,62 +43,77 @@ public class GroovyScript extends ScriptEngineScript
         syntaxColors.put("import", ChatColor.GOLD);
         syntaxColors.put("package", ChatColor.GOLD);
 
-        syntaxColors.put("class", defaultColor);
-        syntaxColors.put("implements", defaultColor);
-        syntaxColors.put("extends", defaultColor);
-        syntaxColors.put("enum", defaultColor);
-        syntaxColors.put("interface", defaultColor);
-
-        syntaxColors.put("public", defaultColor);
-        syntaxColors.put("private", defaultColor);
-        syntaxColors.put("protected", defaultColor);
-
-        syntaxColors.put("final", defaultColor);
-        syntaxColors.put("static", defaultColor);
-        syntaxColors.put("native", defaultColor);
-        syntaxColors.put("throws", defaultColor);
-        syntaxColors.put("transient", defaultColor);
-        syntaxColors.put("volatile", defaultColor);
-        syntaxColors.put("synchronized", defaultColor);
-        syntaxColors.put("strictfp", defaultColor);
-        syntaxColors.put("const", defaultColor);
-
-        syntaxColors.put("try", defaultColor);
-        syntaxColors.put("catch", defaultColor);
-        syntaxColors.put("finally", defaultColor);
-        syntaxColors.put("throw", defaultColor);
-
-        syntaxColors.put("for", defaultColor);
-        syntaxColors.put("while", defaultColor);
-        syntaxColors.put("continue", defaultColor);
-
-        syntaxColors.put("void", defaultColor);
-        syntaxColors.put("return", defaultColor);
-        syntaxColors.put("switch", defaultColor);
+        syntaxColors.put("abstract", defaultColor);
         syntaxColors.put("case", defaultColor);
-        syntaxColors.put("default", defaultColor);
-        syntaxColors.put("super", defaultColor);
-        syntaxColors.put("goto", defaultColor);
-
-        syntaxColors.put("new", defaultColor);
-        syntaxColors.put("this", defaultColor);
-        syntaxColors.put("null", ChatColor.GOLD);
-
-        syntaxColors.put("if", defaultColor);
-        syntaxColors.put("else", defaultColor);
-        syntaxColors.put("instanceof", defaultColor);
-        syntaxColors.put("assert", defaultColor);
-
-        syntaxColors.put("true", ChatColor.GOLD);
-        syntaxColors.put("false", ChatColor.GOLD);
-
-        syntaxColors.put("int", defaultColor);
-        syntaxColors.put("boolean", defaultColor);
-        syntaxColors.put("long", defaultColor);
+        syntaxColors.put("continue", defaultColor);
+        syntaxColors.put("double", defaultColor);
+        syntaxColors.put("extends", defaultColor);
+        syntaxColors.put("for", defaultColor);
+        syntaxColors.put("let", defaultColor);
         syntaxColors.put("short", defaultColor);
-        syntaxColors.put("float", defaultColor);
-        syntaxColors.put("byte", defaultColor);
+        syntaxColors.put("this", defaultColor);
+        syntaxColors.put("try", defaultColor);
+        syntaxColors.put("while", defaultColor);
+        syntaxColors.put("arguments", defaultColor);
+        syntaxColors.put("catch", defaultColor);
+        syntaxColors.put("debugger", defaultColor);
+        syntaxColors.put("else", defaultColor);
+        syntaxColors.put("false", ChatColor.GOLD);
+        syntaxColors.put("function", defaultColor);
+        syntaxColors.put("in", defaultColor);
+        syntaxColors.put("long", defaultColor);
+        syntaxColors.put("private", defaultColor);
+        syntaxColors.put("static", defaultColor);
+        syntaxColors.put("throw", defaultColor);
+        syntaxColors.put("typeof", defaultColor);
+        syntaxColors.put("with", defaultColor);
+        syntaxColors.put("boolean", defaultColor);
         syntaxColors.put("char", defaultColor);
+        syntaxColors.put("default", defaultColor);
+        syntaxColors.put("enum", defaultColor);
+        syntaxColors.put("final", defaultColor);
+        syntaxColors.put("goto", defaultColor);
+        syntaxColors.put("instanceof", defaultColor);
+        syntaxColors.put("native", defaultColor);
+        syntaxColors.put("protected", defaultColor);
+        syntaxColors.put("super", defaultColor);
+        syntaxColors.put("throws", defaultColor);
+        syntaxColors.put("var", defaultColor);
+        syntaxColors.put("yield", defaultColor);
+        syntaxColors.put("break", defaultColor);
+        syntaxColors.put("class", defaultColor);
+        syntaxColors.put("delete", defaultColor);
+        syntaxColors.put("eval", defaultColor);
+        syntaxColors.put("finally", defaultColor);
+        syntaxColors.put("if", defaultColor);
+        syntaxColors.put("int", defaultColor);
+        syntaxColors.put("new", defaultColor);
+        syntaxColors.put("public", defaultColor);
+        syntaxColors.put("switch", defaultColor);
+        syntaxColors.put("transient", defaultColor);
+        syntaxColors.put("void", defaultColor);
+        syntaxColors.put("byte", defaultColor);
+        syntaxColors.put("const", defaultColor);
+        syntaxColors.put("do", defaultColor);
+        syntaxColors.put("export", defaultColor);
+        syntaxColors.put("float", defaultColor);
+        syntaxColors.put("implements", defaultColor);
+        syntaxColors.put("interface", defaultColor);
+        syntaxColors.put("null", ChatColor.GOLD);
+        syntaxColors.put("return", defaultColor);
+        syntaxColors.put("synchronized", defaultColor);
+        syntaxColors.put("true", ChatColor.GOLD);
+        syntaxColors.put("volatile", defaultColor);
+        syntaxColors.put("isFinite", defaultColor);
+        syntaxColors.put("NaN", defaultColor);
+        syntaxColors.put("name", defaultColor);
+        syntaxColors.put("eval", defaultColor);
+        syntaxColors.put("function", defaultColor);
+        syntaxColors.put("length", defaultColor);
+        syntaxColors.put("valueOf", defaultColor);
+        syntaxColors.put("hasOwnProperty", defaultColor);
+        syntaxColors.put("toString", defaultColor);
+        syntaxColors.put("const", defaultColor);
 
         for(String keyWord : syntaxColors.keySet())
         {
@@ -174,49 +188,15 @@ public class GroovyScript extends ScriptEngineScript
         return tmp;
     }
 
-    //public Object runCode(ShellInstance shellInstance, String code)
-    //{
-    //    GroovyShell instance = (GroovyShell) shellInstance.getExecutor();
-    //    return instance.evaluate(code);
-    //}
-
     @Override
     protected String getDefaultImports()
     {
-        String nl = Util.getNewLine();
-        return  "import de.static_interface.sinklibrary.*;" + nl +
-                "import de.static_interface.sinkscripts.*;" + nl +
-                "import org.bukkit.block.*;" + nl +
-                "import org.bukkit.event.*;" + nl +
-                "import org.bukkit.entity.*;" + nl +
-                "import org.bukkit.inventory.*;" + nl +
-                "import org.bukkit.material.*;" + nl +
-                "import org.bukkit.potion.*; " + nl +
-                "import org.bukkit.util.*" + nl +
-                "import org.bukkit.*;" + nl +
-                "import javax.script.*;" + nl + nl;
+        return ""; // Todo!
     }
-
-    //@Override
-    //public ShellInstance createNewShellInstance(CommandSender sender)
-    //{
-    //    GroovyShell groovyShell = new GroovyShell();
-    //    return new GroovyShellInstance(sender, groovyShell);
-    //}
-//
-    //@Override
-    //public void setVariable(ShellInstance instance, String name, Object value)
-    //{
-    //    GroovyShell shell = (GroovyShell) instance.getExecutor();
-    //    shell.setVariable(name, value);
-    //}
 
     @Override
     public List<String> getImportIdentifier()
     {
-        List<String> importIdentifiers = new ArrayList<>();
-        importIdentifiers.add("import");
-        importIdentifiers.add("package");
-        return importIdentifiers;
+        return new ArrayList<>(); // Todo!
     }
 }

@@ -15,9 +15,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.static_interface.sinkscripts.commands;
+package de.static_interface.sinkscripts.command;
 
-import de.static_interface.sinklibrary.commands.Command;
+import de.static_interface.sinklibrary.command.Command;
 import de.static_interface.sinkscripts.scriptengine.ScriptHandler;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;

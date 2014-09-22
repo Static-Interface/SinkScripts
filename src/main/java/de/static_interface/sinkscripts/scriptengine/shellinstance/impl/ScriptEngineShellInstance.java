@@ -15,20 +15,18 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.static_interface.sinkscripts.scriptengine.shellinstances;
+package de.static_interface.sinkscripts.scriptengine.shellinstance.impl;
 
+import de.static_interface.sinkscripts.scriptengine.shellinstance.ShellInstance;
 import org.bukkit.command.CommandSender;
 
-public class DummyShellInstance extends ShellInstance
+import javax.script.ScriptEngine;
+
+public class ScriptEngineShellInstance extends ShellInstance
 {
-    public DummyShellInstance(CommandSender sender, Object executor)
+    public ScriptEngineShellInstance(CommandSender sender, ScriptEngine engine)
     {
-        super(sender, executor);
+        super(sender, engine);
     }
 
-    @Override
-    public void clearCache()
-    {
-        // Do nothing
-    }
 }
