@@ -22,71 +22,74 @@ import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguag
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 
-public class Util
-{
-    public static String getFileExtension(File file)
-    {
+public class Util {
+
+    public static String getFileExtension(File file) {
         String tmp = file.getName();
         int i = tmp.lastIndexOf('.');
 
-        if (i > 0 &&  i < tmp.length() - 1) {
-            return tmp.substring(i+1).toLowerCase();
+        if (i > 0 && i < tmp.length() - 1) {
+            return tmp.substring(i + 1).toLowerCase();
         }
 
         return null;
     }
 
-    public static String getNewLine()
-    {
+    public static String getNewLine() {
         return System.getProperty("line.separator");
     }
 
-    public static void reportException(CommandSender sender, Throwable e)
-    {
-        if(e == null) return;
+    public static void reportException(CommandSender sender, Throwable e) {
+        if (e == null) {
+            return;
+        }
 
         SinkLibrary.getInstance().getCustomLogger().debug("[SinkScripts] Exception caused by " + sender.getName() + ": ");
         e.printStackTrace();
 
         sender.sendMessage(ChatColor.DARK_RED + "Unexpected " + ((e instanceof Exception) ? "exception: " : "error: "));
         String[] lines = null;
-        if(e.getMessage() != null)
+        if (e.getMessage() != null) {
             lines = e.getMessage().split(Util.getNewLine());
+        }
         String msg = null;
-        if(lines != null && lines.length > 0)
+        if (lines != null && lines.length > 0) {
             msg = lines[0] + (lines.length > 1 ? Util.getNewLine() + lines[1] : "");
+        }
         sender.sendMessage(ChatColor.RED + e.getClass().getCanonicalName() + (msg == null ? "" : ": " + msg));
         Throwable cause = e.getCause();
 
         //Report all "Caused By" exceptions but don't show stacktraces
-        while(cause != null)
-        {
+        while (cause != null) {
             lines = null;
-            if(cause.getMessage() != null)
+            if (cause.getMessage() != null) {
                 lines = cause.getMessage().split(Util.getNewLine());
+            }
             msg = null;
-            if(lines != null &&lines.length > 0)
+            if (lines != null && lines.length > 0) {
                 msg = lines[0] + (lines.length > 1 ? Util.getNewLine() + lines[1] : "");
+            }
             sender.sendMessage(ChatColor.RED + "Caused by: " + cause.getClass().getCanonicalName() + (msg == null ? "" : ": " + msg));
             cause = cause.getCause();
         }
     }
 
-    public static String loadFile(File scriptFile) throws IOException
-    {
+    public static String loadFile(File scriptFile) throws IOException {
         String nl = Util.getNewLine();
-        if ( !scriptFile.exists() )
-        {
+        if (!scriptFile.exists()) {
             throw new FileNotFoundException("Couldn't find file: " + scriptFile);
         }
         BufferedReader br = new BufferedReader(new FileReader(scriptFile));
         StringBuilder sb = new StringBuilder();
         String line = br.readLine();
 
-        while ( line != null )
-        {
+        while (line != null) {
             sb.append(line);
             sb.append(nl);
             line = br.readLine();
@@ -94,30 +97,27 @@ public class Util
         return sb.toString();
     }
 
-    public static String loadFile(String scriptName, ScriptLanguage language) throws IOException
-    {
+    public static String loadFile(String scriptName, ScriptLanguage language) throws IOException {
         File scriptFile = new File(language.SCRIPTLANGUAGE_DIRECTORY, scriptName + "." + language.getFileExtension());
-        if(!scriptFile.exists())
-        {
+        if (!scriptFile.exists()) {
             SinkLibrary.getInstance().getCustomLogger().debug("Couldn't find file: " + scriptFile.getAbsolutePath());
             scriptFile = Util.searchRecursively(scriptName, language.SCRIPTLANGUAGE_DIRECTORY, language);
         }
         return loadFile(scriptFile);
     }
 
-    public static File searchRecursively(String scriptName, File directory, ScriptLanguage language) throws IOException
-    {
+    public static File searchRecursively(String scriptName, File directory, ScriptLanguage language) throws IOException {
         File[] files = directory.listFiles();
-        if(files == null) return null;
-        for (File file : files)
-        {
-            if (file.isDirectory())
-            {
+        if (files == null) {
+            return null;
+        }
+        for (File file : files) {
+            if (file.isDirectory()) {
                 return searchRecursively(scriptName, file, language);
-            }
-            else
-            {
-                if(file.getName().equals(scriptName + "." + language.getFileExtension())) return file;
+            } else {
+                if (file.getName().equals(scriptName + "." + language.getFileExtension())) {
+                    return file;
+                }
             }
         }
         return null;

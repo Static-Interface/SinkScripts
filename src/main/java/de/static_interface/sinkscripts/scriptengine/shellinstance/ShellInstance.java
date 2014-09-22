@@ -19,35 +19,30 @@ package de.static_interface.sinkscripts.scriptengine.shellinstance;
 
 import org.bukkit.command.CommandSender;
 
-public abstract class ShellInstance
-{
+public abstract class ShellInstance {
+
     private Object executor;
     private String code;
     private CommandSender sender;
 
-    public ShellInstance(CommandSender sender, Object executor)
-    {
+    public ShellInstance(CommandSender sender, Object executor) {
         this.sender = sender;
         this.executor = executor;
     }
 
-    public Object getExecutor()
-    {
+    public Object getExecutor() {
         return executor;
     }
 
-    public String getCode()
-    {
+    public String getCode() {
         return code;
     }
 
-    public void setCode(String code)
-    {
+    public void setCode(String code) {
         this.code = code;
     }
 
-    public CommandSender getSender()
-    {
+    public CommandSender getSender() {
         return sender;
     }
 }

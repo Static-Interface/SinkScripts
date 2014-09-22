@@ -22,10 +22,9 @@ import org.bukkit.command.CommandSender;
 
 import javax.script.ScriptEngine;
 
-public class ScriptEngineShellInstance extends ShellInstance
-{
-    public ScriptEngineShellInstance(CommandSender sender, ScriptEngine engine)
-    {
+public class ScriptEngineShellInstance extends ShellInstance {
+
+    public ScriptEngineShellInstance(CommandSender sender, ScriptEngine engine) {
         super(sender, engine);
     }
 

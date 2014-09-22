@@ -31,73 +31,60 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 
-public abstract class ScriptLanguage
-{
-    protected String fileExtension;
-    protected Plugin plugin;
-    protected String name;
-
-    private ShellInstance consoleShellInstance;
+public abstract class ScriptLanguage {
 
     public File SCRIPTLANGUAGE_DIRECTORY;
     public File FRAMEWORK_FOLDER;
     public File AUTOSTART_DIRECTORY;
+    protected String fileExtension;
+    protected Plugin plugin;
+    protected String name;
+    private ShellInstance consoleShellInstance;
 
-    public ScriptLanguage(Plugin plugin, String name, String fileExtension)
-    {
+    public ScriptLanguage(Plugin plugin, String name, String fileExtension) {
         this.fileExtension = fileExtension.toLowerCase();
         this.plugin = plugin;
         this.name = name;
         SCRIPTLANGUAGE_DIRECTORY = new File(SCRIPTS_FOLDER, name);
         FRAMEWORK_FOLDER = new File(SCRIPTLANGUAGE_DIRECTORY, "framework");
         AUTOSTART_DIRECTORY = new File(SCRIPTLANGUAGE_DIRECTORY, "autostart");
-        if((!SCRIPTLANGUAGE_DIRECTORY.exists() && !SCRIPTLANGUAGE_DIRECTORY.mkdirs())
-                || (!FRAMEWORK_FOLDER.exists() && !FRAMEWORK_FOLDER.mkdirs())
-                || (!AUTOSTART_DIRECTORY.exists() && ! AUTOSTART_DIRECTORY.mkdirs()))
-        {
+        if ((!SCRIPTLANGUAGE_DIRECTORY.exists() && !SCRIPTLANGUAGE_DIRECTORY.mkdirs())
+            || (!FRAMEWORK_FOLDER.exists() && !FRAMEWORK_FOLDER.mkdirs())
+            || (!AUTOSTART_DIRECTORY.exists() && !AUTOSTART_DIRECTORY.mkdirs())) {
             throw new RuntimeException(getName() + ": Couldn't create required directories!");
         }
     }
 
-    public String getName()
-    {
+    public String getName() {
         return name;
     }
 
-    public String getFileExtension()
-    {
+    public String getFileExtension() {
         return fileExtension;
     }
 
     public abstract String formatCode(String code);
 
-    public Object run(ShellInstance instance, String code, boolean skipImports, boolean clear)
-    {
+    public Object run(ShellInstance instance, String code, boolean skipImports, boolean clear) {
         SinkLibrary.getInstance().getCustomLogger().logToFile(Level.INFO, instance.getSender().getName() + " executed script: " + code);
 
-        if(!skipImports)
-        {
+        if (!skipImports) {
             code = onUpdateImports(code);
         }
 
-        if (clear)
-        {
+        if (clear) {
             instance.setCode("");
         }
 
         return eval(instance, code);
     }
 
-    protected Object run(ShellInstance instance, File file, boolean skipImports, boolean clear)
-    {
+    protected Object run(ShellInstance instance, File file, boolean skipImports, boolean clear) {
         SinkLibrary.getInstance().getCustomLogger().logToFile(Level.INFO, instance.getSender().getName() + " executed script file: " + file);
         setVariable(instance, "scriptfile", file);
-        try
-        {
+        try {
             return eval(instance, Util.loadFile(file));
-        }
-        catch ( IOException e )
-        {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -109,117 +96,105 @@ public abstract class ScriptLanguage
      * @return primite Value
      */
 
-    public Object getValue(String[] commandArgs)
-    {
+    public Object getValue(String[] commandArgs) {
         String commandArg = commandArgs[0];
 
-        if ( commandArg.equalsIgnoreCase("null") ) return null;
+        if (commandArg.equalsIgnoreCase("null")) {
+            return null;
+        }
 
-        try
-        {
+        try {
             Long l = Long.parseLong(commandArg);
-            if ( l <= Byte.MAX_VALUE )
-            {
+            if (l <= Byte.MAX_VALUE) {
                 return Byte.parseByte(commandArg);
-            }
-            else if ( l <= Short.MAX_VALUE )
-            {
+            } else if (l <= Short.MAX_VALUE) {
                 return Short.parseShort(commandArg); // Value is a Short
-            }
-            else if ( l <= Integer.MAX_VALUE )
-            {
+            } else if (l <= Integer.MAX_VALUE) {
                 return Integer.parseInt(commandArg); // Value is an Integer
             }
             return l; // Value is a Long
+        } catch (Exception ignored) {
         }
-        catch ( Exception ignored ) { }
 
-        try
-        {
+        try {
             return Float.parseFloat(commandArg); // Value is Float
+        } catch (Exception ignored) {
         }
-        catch ( Exception ignored ) { }
 
-        try
-        {
+        try {
             return Double.parseDouble(commandArg); // Value is Double
+        } catch (Exception ignored) {
         }
-        catch ( Exception ignored ) { }
 
         //Parse Booleans
-        if(commandArg.equalsIgnoreCase("true") ||commandArg.equals("1"))
+        if (commandArg.equalsIgnoreCase("true") || commandArg.equals("1")) {
             return true;
-
-        else if (commandArg.equalsIgnoreCase("false") ||commandArg.equals("0"))
+        } else if (commandArg.equalsIgnoreCase("false") || commandArg.equals("0")) {
             return false;
+        }
 
-        if ( commandArg.startsWith("'") && commandArg.endsWith("'") && commandArg.length() == 3 )
-        {
+        if (commandArg.startsWith("'") && commandArg.endsWith("'") && commandArg.length() == 3) {
             return commandArg.toCharArray()[1]; // Value is char
         }
 
-
         String tmp = "";
-        for ( String s : commandArgs )
-        {
-            if ( tmp.equals("") )
-            {
+        for (String s : commandArgs) {
+            if (tmp.equals("")) {
                 tmp = s;
+            } else {
+                tmp += " " + s;
             }
-            else tmp += " " + s;
         }
-        if ( tmp.startsWith("\"") && tmp.endsWith("\"") )
-        {
+        if (tmp.startsWith("\"") && tmp.endsWith("\"")) {
             StringBuilder b = new StringBuilder(tmp);
-            b.replace(tmp.lastIndexOf("\""), tmp.lastIndexOf("\"") + 1, "" );
+            b.replace(tmp.lastIndexOf("\""), tmp.lastIndexOf("\"") + 1, "");
             return b.toString().replaceFirst("\"", "");  // Value is a String
         }
         throw new IllegalArgumentException("Unknown value");
     }
 
-    protected String onUpdateImports(String code)
-    {
+    protected String onUpdateImports(String code) {
         String defaultImports = getDefaultImports();
-        if(defaultImports == null) return code;
+        if (defaultImports == null) {
+            return code;
+        }
         code = code.replace(defaultImports, "");
         return defaultImports + code;
     }
+
     protected abstract String getDefaultImports();
+
     public abstract ShellInstance createNewShellInstance(CommandSender sender);
+
     public abstract void setVariable(ShellInstance instance, String name, Object value);
+
     public abstract List<String> getImportIdentifier();
 
-    public void onAutoStart()
-    {
+    public void onAutoStart() {
         autoStartRecur(AUTOSTART_DIRECTORY);
     }
 
-    private void autoStartRecur(File directory)
-    {
+    private void autoStartRecur(File directory) {
         File[] files = directory.listFiles();
-        if(files == null) return;
-        for (File file : files)
-        {
-            if (file.isDirectory())
-            {
+        if (files == null) {
+            return;
+        }
+        for (File file : files) {
+            if (file.isDirectory()) {
                 autoStartRecur(file);
-            }
-            else
-            {
-                if( !Util.getFileExtension(file).equals(getFileExtension()) ) continue;
+            } else {
+                if (!Util.getFileExtension(file).equals(getFileExtension())) {
+                    continue;
+                }
                 run(getConsoleShellInstance(), file, false, true);
             }
         }
     }
 
-    public void preInit()
-    {
-        try
-        {
+    public void preInit() {
+        try {
             onPreInit();
-        }
-        catch(Throwable tr)
-        {
+        } catch (Throwable tr) {
             tr.printStackTrace();
         }
     }
@@ -228,25 +203,21 @@ public abstract class ScriptLanguage
      * Called before the libraries are loaded, you can e.g. setuo enviroment values here
      * Don't try to call the library or classes from it
      */
-    public void onPreInit() { }
+    public void onPreInit() {
+    }
 
 
-
-    public ShellInstance getConsoleShellInstance()
-    {
-        if (consoleShellInstance == null)
+    public ShellInstance getConsoleShellInstance() {
+        if (consoleShellInstance == null) {
             consoleShellInstance = createNewShellInstance(Bukkit.getConsoleSender());
+        }
         return consoleShellInstance;
     }
 
-    public final void init()
-    {
-        try
-        {
+    public final void init() {
+        try {
             onInit();
-        }
-        catch(Throwable tr)
-        {
+        } catch (Throwable tr) {
             tr.printStackTrace();
         }
     }
@@ -254,5 +225,6 @@ public abstract class ScriptLanguage
     /**
      * Called when the libraries has been loaded, you can setup the language here
      */
-    public void onInit() { }
+    public void onInit() {
+    }
 }

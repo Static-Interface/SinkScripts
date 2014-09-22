@@ -25,16 +25,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class RubyScript extends ScriptEngineScript
-{
-    public RubyScript(Plugin plugin)
-    {
+public class RubyScript extends ScriptEngineScript {
+
+    public RubyScript(Plugin plugin) {
         super(plugin, "ruby", "rb", "jruby");
     }
 
     @Override
-    public String formatCode(String code)
-    {
+    public String formatCode(String code) {
         ChatColor defaultColor = ChatColor.DARK_BLUE;
         ChatColor codeColor = ChatColor.RESET;
         ChatColor classColor = ChatColor.BLUE;
@@ -44,22 +42,20 @@ public class RubyScript extends ScriptEngineScript
         boolean classStart = false;
         char lastChar = 0;
         String tmp = "";
-        for(char Char : code.toCharArray())
-        {
+        for (char Char : code.toCharArray()) {
             boolean t = false;
-            if(!Character.isAlphabetic(lastChar) && Character.isUpperCase(Char) && !classStart)
-            {
+            if (!Character.isAlphabetic(lastChar) && Character.isUpperCase(Char) && !classStart) {
                 classStart = true;
                 t = true;
             }
 
-            if(!classStart)
-            {
+            if (!classStart) {
                 tmp += Char;
                 continue;
             }
 
-            if(!Character.isAlphabetic(Char) && !t)//if(Char == '.' || Char == ' ' || Char == ';' || Char == '+' || Char == '-' || Char == '*' || Char == ':' || Char == '/')
+            if (!Character.isAlphabetic(Char)
+                && !t)//if(Char == '.' || Char == ' ' || Char == ';' || Char == '+' || Char == '-' || Char == '*' || Char == ':' || Char == '/')
             {
                 classStart = false;
                 tmp += ChatColor.RESET + "" + Char;
@@ -126,8 +122,7 @@ public class RubyScript extends ScriptEngineScript
         syntaxColors.put("require", ChatColor.GOLD);
         syntaxColors.put("package_name", ChatColor.GOLD);
 
-        for(String keyWord : syntaxColors.keySet())
-        {
+        for (String keyWord : syntaxColors.keySet()) {
             ChatColor color = syntaxColors.get(keyWord);
             code = code.replace(" " + keyWord + " ", color + " " + keyWord + " " + ChatColor.RESET);
             code = code.replace(" " + keyWord, color + " " + keyWord + ChatColor.RESET);
@@ -140,26 +135,20 @@ public class RubyScript extends ScriptEngineScript
         boolean stringStart = false;
 
         //Set String color
-        for ( char Char : code.toCharArray() )
-        {
-            if ( Char == '"' && lastChar != '\\')
-            {
-                if ( !stringStart )
-                {
+        for (char Char : code.toCharArray()) {
+            if (Char == '"' && lastChar != '\\') {
+                if (!stringStart) {
                     tmp += stringColor;
                 }
 
                 tmp += Char;
 
-                if ( stringStart )
-                {
+                if (stringStart) {
                     tmp += codeColor;
                 }
 
                 stringStart = !stringStart;
-            }
-            else
-            {
+            } else {
                 tmp += Char;
             }
             lastChar = Char;
@@ -169,34 +158,32 @@ public class RubyScript extends ScriptEngineScript
     }
 
     @Override
-    protected String getDefaultImports()
-    {
+    protected String getDefaultImports() {
         String nl = Util.getNewLine();
-        return  "require 'java'" + nl +
+        return "require 'java'" + nl +
 
-                "module SinkLibrary" + nl +
-                "    include_package \"de.static_interface.sinklibrary\"" + nl +
-                "end" + nl + nl +
+               "module SinkLibrary" + nl +
+               "    include_package \"de.static_interface.sinklibrary\"" + nl +
+               "end" + nl + nl +
 
-                "module SinkScripts" + nl +
-                "    include_package \"de.static_interface.sinkscripts\"" + nl +
-                "end" + nl + nl +
+               "module SinkScripts" + nl +
+               "    include_package \"de.static_interface.sinkscripts\"" + nl +
+               "end" + nl + nl +
 
-                "module Bukkit" + nl +
-                "    include_package \"org.bukkit.block\"" + nl +
-                "    include_package \"org.bukkit.event\"" + nl +
-                "    include_package \"org.bukkit.entity\"" + nl +
-                "    include_package \"org.bukkit.inventory\"" + nl +
-                "    include_package \"org.bukkit.material\"" + nl +
-                "    include_package \"org.bukkit.potion\"" + nl +
-                "    include_package \"org.bukkit.util\"" + nl +
-                "    include_package \"org.bukkit\"" + nl +
-                "end" + nl +nl;
+               "module Bukkit" + nl +
+               "    include_package \"org.bukkit.block\"" + nl +
+               "    include_package \"org.bukkit.event\"" + nl +
+               "    include_package \"org.bukkit.entity\"" + nl +
+               "    include_package \"org.bukkit.inventory\"" + nl +
+               "    include_package \"org.bukkit.material\"" + nl +
+               "    include_package \"org.bukkit.potion\"" + nl +
+               "    include_package \"org.bukkit.util\"" + nl +
+               "    include_package \"org.bukkit\"" + nl +
+               "end" + nl + nl;
     }
 
     @Override
-    public List<String> getImportIdentifier()
-    {
+    public List<String> getImportIdentifier() {
         List<String> importIdentifiers = new ArrayList<>();
         importIdentifiers.add("java_import");
         importIdentifiers.add("import");
@@ -208,8 +195,7 @@ public class RubyScript extends ScriptEngineScript
     }
 
     @Override
-    public void onInit()
-    {
+    public void onInit() {
         System.setProperty("org.jruby.embed.compilemode", "OFF");
         System.setProperty("jruby.compile.mode", "OFF");
     }

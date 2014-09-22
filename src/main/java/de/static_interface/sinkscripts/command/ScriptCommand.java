@@ -24,42 +24,35 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.plugin.Plugin;
 
-public class ScriptCommand extends Command
-{
-    public ScriptCommand(Plugin plugin)
-    {
+public class ScriptCommand extends Command {
+
+    public ScriptCommand(Plugin plugin) {
         super(plugin);
     }
 
-        @Override
-    public boolean isIrcOpOnly()
-    {
+    @Override
+    public boolean isIrcOpOnly() {
         return true;
     }
 
     @Override
-    public boolean onExecute(CommandSender sender, String label, String[] args)
-    {
-        if ( !(sender instanceof ConsoleCommandSender) && ScriptHandler.isEnabled(sender) )
-        {
+    public boolean onExecute(CommandSender sender, String label, String[] args) {
+        if (!(sender instanceof ConsoleCommandSender) && ScriptHandler.isEnabled(sender)) {
             ScriptHandler.setEnabled(sender, false);
             sender.sendMessage(ChatColor.DARK_RED + "Disabled Interactive Scripting Console");
             return true;
         }
 
-        if ( args.length > 0 )
-        {
+        if (args.length > 0) {
             String currentLine = "";
-            for ( String arg : args )
-            {
+            for (String arg : args) {
                 currentLine += arg + ' ';
             }
             ScriptHandler.handleLine(sender, currentLine, plugin);
             return true;
         }
 
-        if(sender instanceof ConsoleCommandSender)
-        {
+        if (sender instanceof ConsoleCommandSender) {
             return false;
         }
 

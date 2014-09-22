@@ -20,8 +20,8 @@ package de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl;
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinkscripts.SinkScripts;
 import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguage;
-import de.static_interface.sinkscripts.scriptengine.shellinstance.impl.ScriptEngineShellInstance;
 import de.static_interface.sinkscripts.scriptengine.shellinstance.ShellInstance;
+import de.static_interface.sinkscripts.scriptengine.shellinstance.impl.ScriptEngineShellInstance;
 import de.static_interface.sinkscripts.util.JoinClassLoader;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -31,41 +31,37 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
-public abstract class ScriptEngineScript extends ScriptLanguage
-{
+public abstract class ScriptEngineScript extends ScriptLanguage {
+
     String engineName;
-    public ScriptEngineScript(Plugin plugin, String name, String fileExtension, String engineName)
-    {
+
+    public ScriptEngineScript(Plugin plugin, String name, String fileExtension, String engineName) {
         super(plugin, name, fileExtension);
         this.engineName = engineName;
     }
 
     @Override
-    public Object eval(ShellInstance instance, String code)
-    {
-        try
-        {
-            return ((ScriptEngine)instance.getExecutor()).eval(code);
-        }
-        catch ( ScriptException e )
-        {
+    public Object eval(ShellInstance instance, String code) {
+        try {
+            return ((ScriptEngine) instance.getExecutor()).eval(code);
+        } catch (ScriptException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public ShellInstance createNewShellInstance(CommandSender sender)
-    {
+    public ShellInstance createNewShellInstance(CommandSender sender) {
         ScriptEngine e = new ScriptEngineManager
                 (new JoinClassLoader(((SinkScripts) plugin).getClazzLoader(), Bukkit.class.getClassLoader(),
-                        SinkLibrary.class.getClassLoader())).getEngineByName(engineName);
-        if(e == null) throw new NullPointerException("Couldn't find ScriptEngine: " + engineName + ". Did you forgot to add a library?");
+                                     SinkLibrary.class.getClassLoader())).getEngineByName(engineName);
+        if (e == null) {
+            throw new NullPointerException("Couldn't find ScriptEngine: " + engineName + ". Did you forgot to add a library?");
+        }
         return new ScriptEngineShellInstance(sender, e);
     }
 
     @Override
-    public void setVariable(ShellInstance instance, String name, Object value)
-    {
-        ((ScriptEngine)instance.getExecutor()).put(name, value);
+    public void setVariable(ShellInstance instance, String name, Object value) {
+        ((ScriptEngine) instance.getExecutor()).put(name, value);
     }
 }

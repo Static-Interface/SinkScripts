@@ -29,16 +29,14 @@ import java.util.List;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
-public class GroovyScript extends ScriptEngineScript
-{
-    public GroovyScript(Plugin plugin)
-    {
+public class GroovyScript extends ScriptEngineScript {
+
+    public GroovyScript(Plugin plugin) {
         super(plugin, "groovy", "groovy", "groovy");
     }
 
     @Override
-    public String formatCode(String code)
-    {
+    public String formatCode(String code) {
         ChatColor defaultColor = ChatColor.DARK_BLUE;
         ChatColor codeColor = ChatColor.RESET;
         ChatColor classColor = ChatColor.BLUE;
@@ -105,8 +103,7 @@ public class GroovyScript extends ScriptEngineScript
         syntaxColors.put("byte", defaultColor);
         syntaxColors.put("char", defaultColor);
 
-        for(String keyWord : syntaxColors.keySet())
-        {
+        for (String keyWord : syntaxColors.keySet()) {
             ChatColor color = syntaxColors.get(keyWord);
             code = code.replace(" " + keyWord + " ", color + " " + keyWord + " " + ChatColor.RESET);
             code = code.replace(" " + keyWord, color + " " + keyWord + ChatColor.RESET);
@@ -117,22 +114,20 @@ public class GroovyScript extends ScriptEngineScript
         boolean classStart = false;
         char lastChar = 0;
         String tmp = "";
-        for(char Char : code.toCharArray())
-        {
+        for (char Char : code.toCharArray()) {
             boolean t = false;
-            if(!Character.isAlphabetic(lastChar) && Character.isUpperCase(Char) && !classStart)
-            {
+            if (!Character.isAlphabetic(lastChar) && Character.isUpperCase(Char) && !classStart) {
                 classStart = true;
                 t = true;
             }
 
-            if(!classStart)
-            {
+            if (!classStart) {
                 tmp += Char;
                 continue;
             }
 
-            if(!Character.isAlphabetic(Char) && !t)//if(Char == '.' || Char == ' ' || Char == ';' || Char == '+' || Char == '-' || Char == '*' || Char == ':' || Char == '/')
+            if (!Character.isAlphabetic(Char)
+                && !t)//if(Char == '.' || Char == ' ' || Char == ';' || Char == '+' || Char == '-' || Char == '*' || Char == ':' || Char == '/')
             {
                 classStart = false;
                 tmp += ChatColor.RESET + "" + Char;
@@ -150,26 +145,20 @@ public class GroovyScript extends ScriptEngineScript
         boolean stringStart = false;
 
         //Set String color
-        for ( char Char : code.toCharArray() )
-        {
-            if ( Char == '"' && lastChar != '\\')
-            {
-                if ( !stringStart )
-                {
+        for (char Char : code.toCharArray()) {
+            if (Char == '"' && lastChar != '\\') {
+                if (!stringStart) {
                     tmp += stringColor;
                 }
 
                 tmp += Char;
 
-                if ( stringStart )
-                {
+                if (stringStart) {
                     tmp += codeColor;
                 }
 
                 stringStart = !stringStart;
-            }
-            else
-            {
+            } else {
                 tmp += Char;
             }
             lastChar = Char;
@@ -185,31 +174,26 @@ public class GroovyScript extends ScriptEngineScript
     //}
 
     @Override
-    protected String getDefaultImports()
-    {
+    protected String getDefaultImports() {
         String nl = Util.getNewLine();
-        return  "import de.static_interface.sinklibrary.*;" + nl +
-                "import de.static_interface.sinkscripts.*;" + nl +
-                "import org.bukkit.block.*;" + nl +
-                "import org.bukkit.event.*;" + nl +
-                "import org.bukkit.entity.*;" + nl +
-                "import org.bukkit.inventory.*;" + nl +
-                "import org.bukkit.material.*;" + nl +
-                "import org.bukkit.potion.*; " + nl +
-                "import org.bukkit.util.*" + nl +
-                "import org.bukkit.*;" + nl +
-                "import javax.script.*;" + nl + nl;
+        return "import de.static_interface.sinklibrary.*;" + nl +
+               "import de.static_interface.sinkscripts.*;" + nl +
+               "import org.bukkit.block.*;" + nl +
+               "import org.bukkit.event.*;" + nl +
+               "import org.bukkit.entity.*;" + nl +
+               "import org.bukkit.inventory.*;" + nl +
+               "import org.bukkit.material.*;" + nl +
+               "import org.bukkit.potion.*; " + nl +
+               "import org.bukkit.util.*" + nl +
+               "import org.bukkit.*;" + nl +
+               "import javax.script.*;" + nl + nl;
     }
 
     @Override
-    public Object eval(ShellInstance instance, String code)
-    {
-        try
-        {
-            return ((ScriptEngine)instance.getExecutor()).eval(code);
-        }
-        catch ( ScriptException e )
-        {
+    public Object eval(ShellInstance instance, String code) {
+        try {
+            return ((ScriptEngine) instance.getExecutor()).eval(code);
+        } catch (ScriptException e) {
             throw new RuntimeException(e);
         }
     }
@@ -229,8 +213,7 @@ public class GroovyScript extends ScriptEngineScript
     //}
 
     @Override
-    public List<String> getImportIdentifier()
-    {
+    public List<String> getImportIdentifier() {
         List<String> importIdentifiers = new ArrayList<>();
         importIdentifiers.add("import");
         importIdentifiers.add("package");

@@ -24,16 +24,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class JavaScript extends ScriptEngineScript
-{
-    public JavaScript(Plugin plugin)
-    {
+public class JavaScript extends ScriptEngineScript {
+
+    public JavaScript(Plugin plugin) {
         super(plugin, "javascript", "js", "JavaScript");
     }
 
     @Override
-    public String formatCode(String code)
-    {
+    public String formatCode(String code) {
         ChatColor defaultColor = ChatColor.DARK_BLUE;
         ChatColor codeColor = ChatColor.RESET;
         ChatColor classColor = ChatColor.BLUE;
@@ -115,8 +113,7 @@ public class JavaScript extends ScriptEngineScript
         syntaxColors.put("toString", defaultColor);
         syntaxColors.put("const", defaultColor);
 
-        for(String keyWord : syntaxColors.keySet())
-        {
+        for (String keyWord : syntaxColors.keySet()) {
             ChatColor color = syntaxColors.get(keyWord);
             code = code.replace(" " + keyWord + " ", color + " " + keyWord + " " + ChatColor.RESET);
             code = code.replace(" " + keyWord, color + " " + keyWord + ChatColor.RESET);
@@ -127,22 +124,20 @@ public class JavaScript extends ScriptEngineScript
         boolean classStart = false;
         char lastChar = 0;
         String tmp = "";
-        for(char Char : code.toCharArray())
-        {
+        for (char Char : code.toCharArray()) {
             boolean t = false;
-            if(!Character.isAlphabetic(lastChar) && Character.isUpperCase(Char) && !classStart)
-            {
+            if (!Character.isAlphabetic(lastChar) && Character.isUpperCase(Char) && !classStart) {
                 classStart = true;
                 t = true;
             }
 
-            if(!classStart)
-            {
+            if (!classStart) {
                 tmp += Char;
                 continue;
             }
 
-            if(!Character.isAlphabetic(Char) && !t)//if(Char == '.' || Char == ' ' || Char == ';' || Char == '+' || Char == '-' || Char == '*' || Char == ':' || Char == '/')
+            if (!Character.isAlphabetic(Char)
+                && !t)//if(Char == '.' || Char == ' ' || Char == ';' || Char == '+' || Char == '-' || Char == '*' || Char == ':' || Char == '/')
             {
                 classStart = false;
                 tmp += ChatColor.RESET + "" + Char;
@@ -160,26 +155,20 @@ public class JavaScript extends ScriptEngineScript
         boolean stringStart = false;
 
         //Set String color
-        for ( char Char : code.toCharArray() )
-        {
-            if ( Char == '"' && lastChar != '\\')
-            {
-                if ( !stringStart )
-                {
+        for (char Char : code.toCharArray()) {
+            if (Char == '"' && lastChar != '\\') {
+                if (!stringStart) {
                     tmp += stringColor;
                 }
 
                 tmp += Char;
 
-                if ( stringStart )
-                {
+                if (stringStart) {
                     tmp += codeColor;
                 }
 
                 stringStart = !stringStart;
-            }
-            else
-            {
+            } else {
                 tmp += Char;
             }
             lastChar = Char;
@@ -189,14 +178,12 @@ public class JavaScript extends ScriptEngineScript
     }
 
     @Override
-    protected String getDefaultImports()
-    {
+    protected String getDefaultImports() {
         return ""; // Todo!
     }
 
     @Override
-    public List<String> getImportIdentifier()
-    {
+    public List<String> getImportIdentifier() {
         return new ArrayList<>(); // Todo!
     }
 }

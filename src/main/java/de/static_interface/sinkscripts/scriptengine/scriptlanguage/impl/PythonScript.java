@@ -26,16 +26,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class PythonScript extends ScriptEngineScript
-{
-    public PythonScript(Plugin plugin)
-    {
+public class PythonScript extends ScriptEngineScript {
+
+    public PythonScript(Plugin plugin) {
         super(plugin, "python", "py", "jython");
     }
 
     @Override
-    public String formatCode(String code)
-    {
+    public String formatCode(String code) {
         ChatColor defaultColor = ChatColor.DARK_BLUE;
         ChatColor codeColor = ChatColor.RESET;
         ChatColor classColor = ChatColor.BLUE;
@@ -45,22 +43,20 @@ public class PythonScript extends ScriptEngineScript
         boolean classStart = false;
         char lastChar = 0;
         String tmp = "";
-        for(char Char : code.toCharArray())
-        {
+        for (char Char : code.toCharArray()) {
             boolean t = false;
-            if(!Character.isAlphabetic(lastChar) && Character.isUpperCase(Char) && !classStart)
-            {
+            if (!Character.isAlphabetic(lastChar) && Character.isUpperCase(Char) && !classStart) {
                 classStart = true;
                 t = true;
             }
 
-            if(!classStart)
-            {
+            if (!classStart) {
                 tmp += Char;
                 continue;
             }
 
-            if(!Character.isAlphabetic(Char) && !t)//if(Char == '.' || Char == ' ' || Char == ';' || Char == '+' || Char == '-' || Char == '*' || Char == ':' || Char == '/')
+            if (!Character.isAlphabetic(Char)
+                && !t)//if(Char == '.' || Char == ' ' || Char == ';' || Char == '+' || Char == '-' || Char == '*' || Char == ':' || Char == '/')
             {
                 classStart = false;
                 tmp += ChatColor.RESET + "" + Char;
@@ -109,8 +105,7 @@ public class PythonScript extends ScriptEngineScript
 
         syntaxColors.put("True", ChatColor.GOLD);
         syntaxColors.put("False", ChatColor.GOLD);
-        for(String keyWord : syntaxColors.keySet())
-        {
+        for (String keyWord : syntaxColors.keySet()) {
             ChatColor color = syntaxColors.get(keyWord);
             code = code.replace(" " + keyWord + " ", color + " " + keyWord + " " + ChatColor.RESET);
             code = code.replace(" " + keyWord, color + " " + keyWord + ChatColor.RESET);
@@ -121,29 +116,21 @@ public class PythonScript extends ScriptEngineScript
 
         char startChar = 0;
         //Set String color
-        for ( char Char : code.toCharArray() )
-        {
-            if(Char == startChar)
-            {
-                if ((Char == ']' && lastChar == ']') || Char != ']')
-                {
-                    tmp+= codeColor;
+        for (char Char : code.toCharArray()) {
+            if (Char == startChar) {
+                if ((Char == ']' && lastChar == ']') || Char != ']') {
+                    tmp += codeColor;
                 }
                 tmp += Char;
                 startChar = 0;
-            }
-            else if (Char == '\'' || Char == '"' || (Char == '[' && lastChar == '['))
-            {
-                if(startChar == 0 && Char != ']')
-                {
+            } else if (Char == '\'' || Char == '"' || (Char == '[' && lastChar == '[')) {
+                if (startChar == 0 && Char != ']') {
                     startChar = Char;
                 }
 
                 tmp += stringColor;
                 tmp += Char;
-            }
-            else
-            {
+            } else {
                 tmp += Char;
             }
             lastChar = Char;
@@ -153,14 +140,12 @@ public class PythonScript extends ScriptEngineScript
     }
 
     @Override
-    protected String getDefaultImports()
-    {
+    protected String getDefaultImports() {
         return "";
     }
 
     @Override
-    public List<String> getImportIdentifier()
-    {
+    public List<String> getImportIdentifier() {
         List<String> importIdentifiers = new ArrayList<>();
         importIdentifiers.add("from");
         importIdentifiers.add("import");
@@ -168,34 +153,26 @@ public class PythonScript extends ScriptEngineScript
     }
 
     @Override
-    public void onPreInit()
-    {
-        try
-        {
+    public void onPreInit() {
+        try {
             System.getenv().put("JYTHON_HOME", FRAMEWORK_FOLDER.getAbsolutePath());
+        } catch (UnsupportedOperationException ignored) {
         }
-        catch(UnsupportedOperationException ignored) {}
     }
 
     @Override
-    public void onInit()
-    {
+    public void onInit() {
         File jynxDirectory = new File(FRAMEWORK_FOLDER, "jynx");
-        if(jynxDirectory.exists())
-        {
+        if (jynxDirectory.exists()) {
             setupJynx(jynxDirectory);
-        }
-        else
-        {
+        } else {
             SinkLibrary.getInstance().getCustomLogger().warning("Warning! Couldn't find jynx! Missing directory: " + jynxDirectory.getAbsolutePath());
         }
     }
 
-    private void setupJynx(File jynx)
-    {
+    private void setupJynx(File jynx) {
         File setup = new File(jynx, "setup.py");
-        if ( setup.exists() )
-        {
+        if (setup.exists()) {
             run(getConsoleShellInstance(), setup, false, true);
         }
     }

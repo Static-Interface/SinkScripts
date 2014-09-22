@@ -23,17 +23,15 @@ import org.bukkit.plugin.Plugin;
 import java.util.HashMap;
 import java.util.List;
 
-public class LuaScript extends ScriptEngineScript
-{
-    public LuaScript(Plugin plugin)
-    {
+public class LuaScript extends ScriptEngineScript {
+
+    public LuaScript(Plugin plugin) {
         super(plugin, "lua", "lua", "luaj");
         System.setProperty("org.luaj.debug", "true");
     }
 
     @Override
-    public String formatCode(String code)
-    {
+    public String formatCode(String code) {
         ChatColor defaultColor = ChatColor.DARK_BLUE;
         ChatColor codeColor = ChatColor.RESET;
         ChatColor classColor = ChatColor.BLUE;
@@ -63,8 +61,7 @@ public class LuaScript extends ScriptEngineScript
         syntaxColors.put("until", defaultColor);
         syntaxColors.put("while", defaultColor);
 
-        for(String keyWord : syntaxColors.keySet())
-        {
+        for (String keyWord : syntaxColors.keySet()) {
             ChatColor color = syntaxColors.get(keyWord);
             code = code.replace(" " + keyWord + " ", color + " " + keyWord + " " + ChatColor.RESET);
             code = code.replace(" " + keyWord, color + " " + keyWord + ChatColor.RESET);
@@ -75,22 +72,20 @@ public class LuaScript extends ScriptEngineScript
         boolean classStart = false;
         char lastChar = 0;
         String tmp = "";
-        for(char Char : code.toCharArray())
-        {
+        for (char Char : code.toCharArray()) {
             boolean t = false;
-            if(!Character.isAlphabetic(lastChar) && Character.isUpperCase(Char) && !classStart)
-            {
+            if (!Character.isAlphabetic(lastChar) && Character.isUpperCase(Char) && !classStart) {
                 classStart = true;
                 t = true;
             }
 
-            if(!classStart)
-            {
+            if (!classStart) {
                 tmp += Char;
                 continue;
             }
 
-            if(!Character.isAlphabetic(Char) && !t)//if(Char == '.' || Char == ' ' || Char == ';' || Char == '+' || Char == '-' || Char == '*' || Char == ':' || Char == '/')
+            if (!Character.isAlphabetic(Char)
+                && !t)//if(Char == '.' || Char == ' ' || Char == ';' || Char == '+' || Char == '-' || Char == '*' || Char == ':' || Char == '/')
             {
                 classStart = false;
                 tmp += ChatColor.RESET + "" + Char;
@@ -107,32 +102,23 @@ public class LuaScript extends ScriptEngineScript
         char startChar = 0;
         boolean resetColor = false;
         //Set String color
-        for ( char Char : code.toCharArray() )
-        {
-            if(Char == startChar)
-            {
+        for (char Char : code.toCharArray()) {
+            if (Char == startChar) {
                 tmp += Char;
                 startChar = 0;
                 resetColor = true;
-            }
-            else if (Char == '\'' || Char == '"' || (Char == '^' && lastChar == 'q'))
-            {
-                if(startChar == 0 && Char != ']')
-                {
+            } else if (Char == '\'' || Char == '"' || (Char == '^' && lastChar == 'q')) {
+                if (startChar == 0 && Char != ']') {
                     startChar = Char;
                 }
 
                 tmp += stringColor;
                 tmp += Char;
-            }
-            else if(resetColor)
-            {
+            } else if (resetColor) {
                 tmp += codeColor;
-                tmp+= Char;
+                tmp += Char;
                 resetColor = false;
-            }
-            else
-            {
+            } else {
                 tmp += Char;
             }
 
@@ -143,14 +129,12 @@ public class LuaScript extends ScriptEngineScript
     }
 
     @Override
-    protected String getDefaultImports()
-    {
+    protected String getDefaultImports() {
         return ""; //??
     }
 
     @Override
-    public List<String> getImportIdentifier()
-    {
+    public List<String> getImportIdentifier() {
         return null; //none?
     }
 }

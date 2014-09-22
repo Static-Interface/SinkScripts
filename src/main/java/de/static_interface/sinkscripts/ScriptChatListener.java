@@ -30,66 +30,61 @@ import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Method;
 
-public class ScriptChatListener implements Listener
-{
+public class ScriptChatListener implements Listener {
+
     Plugin plugin;
 
-    public ScriptChatListener(Plugin plugin)
-    {
+    public ScriptChatListener(Plugin plugin) {
         this.plugin = plugin;
     }
 
+    public static String getIrcCommandPrefix() {
+        if (!SinkLibrary.getInstance().isIrcAvailable()) {
+            throw new IllegalStateException("SinkIRC is not available!");
+        }
+        try {
+            Class<?> c = Class.forName("de.static_interface.sinkirc.IrcUtil");
+            Method method = c.getMethod("getCommandPrefix", null);
+            if (!method.isAccessible()) {
+                method.setAccessible(true);
+            }
+            return (String) method.invoke(null);
+        } catch (Exception e) {
+            throw new AssertionError(e);
+        }
+    }
+
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void handleChatScript(final AsyncPlayerChatEvent event)
-    {
-        if ( !ScriptHandler.isEnabled(event.getPlayer()) ) return;
+    public void handleChatScript(final AsyncPlayerChatEvent event) {
+        if (!ScriptHandler.isEnabled(event.getPlayer())) {
+            return;
+        }
         event.setCancelled(true);
         String currentLine = event.getMessage();
         ScriptHandler.handleLine(event.getPlayer(), currentLine, plugin);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void handleIrcMessage(IrcReceiveMessageEvent event)
-    {
+    public void handleIrcMessage(IrcReceiveMessageEvent event) {
         IrcCommandSender sender = new IrcCommandSender(event.getUser(), event.getChannel().getName());
-        if ( !ScriptHandler.isEnabled(sender) )
-        {
+        if (!ScriptHandler.isEnabled(sender)) {
             return;
         }
 
         String currentLine = event.getMessage();
         String ircCommandPrefix = getIrcCommandPrefix();
-        if(currentLine.startsWith(ircCommandPrefix)) return;
+        if (currentLine.startsWith(ircCommandPrefix)) {
+            return;
+        }
         ScriptHandler.handleLine(sender, currentLine, plugin);
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void onPlayerQuit(PlayerQuitEvent event)
-    {
+    public void onPlayerQuit(PlayerQuitEvent event) {
         String name = ScriptHandler.getInternalName(event.getPlayer());
         ScriptHandler.setEnabled(event.getPlayer(), false);
-        if ( ScriptHandler.getShellInstances().containsKey(name) )
-        {
+        if (ScriptHandler.getShellInstances().containsKey(name)) {
             ScriptHandler.getShellInstances().remove(name);
-        }
-    }
-
-    public static String getIrcCommandPrefix()
-    {
-        if(!SinkLibrary.getInstance().isIrcAvailable()) throw new IllegalStateException("SinkIRC is not available!");
-        try
-        {
-            Class<?> c = Class.forName("de.static_interface.sinkirc.IrcUtil");
-            Method method = c.getMethod("getCommandPrefix", null);
-            if ( !method.isAccessible() )
-            {
-                method.setAccessible(true);
-            }
-            return (String) method.invoke(null);
-        }
-        catch(Exception e)
-        {
-            throw new AssertionError(e);
         }
     }
 }
