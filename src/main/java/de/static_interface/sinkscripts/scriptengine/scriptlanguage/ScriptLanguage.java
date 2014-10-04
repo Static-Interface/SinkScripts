@@ -20,6 +20,7 @@ package de.static_interface.sinkscripts.scriptengine.scriptlanguage;
 import static de.static_interface.sinkscripts.SinkScripts.SCRIPTS_FOLDER;
 
 import de.static_interface.sinklibrary.SinkLibrary;
+import de.static_interface.sinkscripts.scriptengine.ScriptHandler;
 import de.static_interface.sinkscripts.scriptengine.shellinstance.ShellInstance;
 import de.static_interface.sinkscripts.util.Util;
 import org.bukkit.Bukkit;
@@ -79,8 +80,9 @@ public abstract class ScriptLanguage {
         return eval(instance, code);
     }
 
-    protected Object run(ShellInstance instance, File file, boolean skipImports, boolean clear) {
+    protected Object run(ShellInstance instance, File file) {
         SinkLibrary.getInstance().getCustomLogger().logToFile(Level.INFO, instance.getSender().getName() + " executed script file: " + file);
+
         setVariable(instance, "scriptfile", file);
         try {
             return eval(instance, Util.loadFile(file));
@@ -186,7 +188,11 @@ public abstract class ScriptLanguage {
                 if (!Util.getFileExtension(file).equals(getFileExtension())) {
                     continue;
                 }
-                run(getConsoleShellInstance(), file, false, true);
+
+                CommandSender sender = getConsoleShellInstance().getSender();
+                ScriptHandler.setVariables(this, plugin, sender);
+
+                run(getConsoleShellInstance(), file);
             }
         }
     }

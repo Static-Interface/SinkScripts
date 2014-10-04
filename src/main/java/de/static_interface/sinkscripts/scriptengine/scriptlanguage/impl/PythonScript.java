@@ -173,7 +173,7 @@ public class PythonScript extends ScriptEngineScript {
     private void setupJynx(File jynx) {
         File setup = new File(jynx, "setup.py");
         if (setup.exists()) {
-            run(getConsoleShellInstance(), setup, false, true);
+            run(getConsoleShellInstance(), setup);
         }
     }
 }

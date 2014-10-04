@@ -308,23 +308,8 @@ public class ScriptHandler {
                             break;
 
                         case ".execute":
-                            language.setVariable(shellInstance, "me", SinkLibrary.getInstance().getUser(sender));
-                            language.setVariable(shellInstance, "plugin", plugin);
-                            language.setVariable(shellInstance, "server", Bukkit.getServer());
-                            language.setVariable(shellInstance, "players", Bukkit.getOnlinePlayers());
-                            language.setVariable(shellInstance, "users", SinkLibrary.getInstance().getOnlineUsers());
-                            language.setVariable(shellInstance, "sender", sender);
-                            language.setVariable(shellInstance, "language", language);
 
-                            if (sender instanceof Player) {
-                                Player player = (Player) sender;
-                                BlockIterator iterator = new BlockIterator(player);
-                                language.setVariable(shellInstance, "player", player);
-                                language.setVariable(shellInstance, "at", iterator.next());
-                                language.setVariable(shellInstance, "x", player.getLocation().getX());
-                                language.setVariable(shellInstance, "y", player.getLocation().getY());
-                                language.setVariable(shellInstance, "z", player.getLocation().getZ());
-                            }
+                            setVariables(language, plugin, sender);
 
                             try {
                                 boolean isParameter = false;
@@ -376,6 +361,26 @@ public class ScriptHandler {
             Bukkit.getScheduler().runTaskAsynchronously(plugin, runnable); // use tasks instead of because bukkit can handle them
         } else {
             Bukkit.getScheduler().runTask(plugin, runnable);
+        }
+    }
+
+    public static void setVariables(ScriptLanguage language, Plugin plugin,
+                                    CommandSender sender) {
+        language.setVariable(shellInstance, "me", SinkLibrary.getInstance().getUser(sender));
+        language.setVariable(shellInstance, "plugin", plugin);
+        language.setVariable(shellInstance, "server", Bukkit.getServer());
+        language.setVariable(shellInstance, "players", Bukkit.getOnlinePlayers());
+        language.setVariable(shellInstance, "sender", sender);
+        language.setVariable(shellInstance, "language", language);
+
+        if (sender instanceof Player) {
+            Player player = (Player) sender;
+            BlockIterator iterator = new BlockIterator(player);
+            language.setVariable(shellInstance, "player", player);
+            language.setVariable(shellInstance, "at", iterator.next());
+            language.setVariable(shellInstance, "x", player.getLocation().getX());
+            language.setVariable(shellInstance, "y", player.getLocation().getY());
+            language.setVariable(shellInstance, "z", player.getLocation().getZ());
         }
     }
 
