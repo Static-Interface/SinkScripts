@@ -18,6 +18,7 @@
 package de.static_interface.sinkscripts.scriptengine;
 
 import de.static_interface.sinklibrary.SinkLibrary;
+import de.static_interface.sinklibrary.SinkUser;
 import de.static_interface.sinklibrary.sender.IrcCommandSender;
 import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguage;
 import de.static_interface.sinkscripts.scriptengine.shellinstance.ShellInstance;
@@ -309,7 +310,7 @@ public class ScriptHandler {
 
                         case ".execute":
 
-                            setVariables(language, plugin, sender);
+                            setVariables(language, plugin, sender, shellInstance);
 
                             try {
                                 boolean isParameter = false;
@@ -365,8 +366,9 @@ public class ScriptHandler {
     }
 
     public static void setVariables(ScriptLanguage language, Plugin plugin,
-                                    CommandSender sender) {
-        language.setVariable(shellInstance, "me", SinkLibrary.getInstance().getUser(sender));
+                                    CommandSender sender, ShellInstance shellInstance) {
+        SinkUser user = SinkLibrary.getInstance().getUser(sender);
+        language.setVariable(shellInstance, "me", user);
         language.setVariable(shellInstance, "plugin", plugin);
         language.setVariable(shellInstance, "server", Bukkit.getServer());
         language.setVariable(shellInstance, "players", Bukkit.getOnlinePlayers());

@@ -190,7 +190,7 @@ public abstract class ScriptLanguage {
                 }
 
                 CommandSender sender = getConsoleShellInstance().getSender();
-                ScriptHandler.setVariables(this, plugin, sender);
+                ScriptHandler.setVariables(this, plugin, sender, getConsoleShellInstance());
 
                 run(getConsoleShellInstance(), file);
             }
