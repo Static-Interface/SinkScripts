@@ -132,7 +132,7 @@ public class SinkScripts extends JavaPlugin {
             return false;
         }
 
-        return true;
+        return SinkLibrary.getInstance().validateApiVersion(SinkLibrary.API_VERSION, this);
     }
 
     private void registerListeners() {

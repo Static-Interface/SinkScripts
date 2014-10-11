@@ -18,8 +18,9 @@
 package de.static_interface.sinkscripts.scriptengine;
 
 import de.static_interface.sinklibrary.SinkLibrary;
-import de.static_interface.sinklibrary.SinkUser;
-import de.static_interface.sinklibrary.sender.IrcCommandSender;
+import de.static_interface.sinklibrary.api.sender.IrcCommandSender;
+import de.static_interface.sinklibrary.api.user.SinkUser;
+import de.static_interface.sinklibrary.util.BukkitUtil;
 import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguage;
 import de.static_interface.sinkscripts.scriptengine.shellinstance.ShellInstance;
 import de.static_interface.sinkscripts.scriptengine.shellinstance.impl.DummyShellInstance;
@@ -79,7 +80,7 @@ public class ScriptHandler {
     }
 
     public static String getInternalName(CommandSender sender) {
-        return sender instanceof IrcCommandSender ? "IRC_" + sender.getName() : sender.getName();
+        return sender instanceof IrcCommandSender ? sender.getName() + ((IrcCommandSender)sender).getUser().getProvider().getCommandArgsSuffix() : sender.getName();
     }
 
     public static void register(ScriptLanguage scriptLanguage) {
@@ -371,7 +372,7 @@ public class ScriptHandler {
         language.setVariable(shellInstance, "me", user);
         language.setVariable(shellInstance, "plugin", plugin);
         language.setVariable(shellInstance, "server", Bukkit.getServer());
-        language.setVariable(shellInstance, "players", Bukkit.getOnlinePlayers());
+        language.setVariable(shellInstance, "players", BukkitUtil.getOnlinePlayers());
         language.setVariable(shellInstance, "sender", sender);
         language.setVariable(shellInstance, "language", language);
 

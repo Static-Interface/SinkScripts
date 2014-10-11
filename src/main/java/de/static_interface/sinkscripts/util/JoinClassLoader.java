@@ -104,7 +104,7 @@ public class JoinClassLoader extends ClassLoader {
     }
 
     protected Enumeration<URL> findResources(String name) throws IOException {
-        Vector<URL> vector = new Vector<URL>();
+        Vector<URL> vector = new Vector<>();
         for (ClassLoader delegate : delegateClassLoaders) {
             Enumeration<URL> enumeration = delegate.getResources(name);
             while (enumeration.hasMoreElements()) {

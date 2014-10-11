@@ -17,14 +17,14 @@
 
 package de.static_interface.sinkscripts.command;
 
-import de.static_interface.sinklibrary.command.Command;
+import de.static_interface.sinklibrary.api.command.SinkCommand;
 import de.static_interface.sinkscripts.scriptengine.ScriptHandler;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.plugin.Plugin;
 
-public class ScriptCommand extends Command {
+public class ScriptCommand extends SinkCommand {
 
     public ScriptCommand(Plugin plugin) {
         super(plugin);

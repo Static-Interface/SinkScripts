@@ -18,8 +18,8 @@
 package de.static_interface.sinkscripts;
 
 import de.static_interface.sinklibrary.SinkLibrary;
-import de.static_interface.sinklibrary.event.IrcReceiveMessageEvent;
-import de.static_interface.sinklibrary.sender.IrcCommandSender;
+import de.static_interface.sinklibrary.api.event.IrcReceiveMessageEvent;
+import de.static_interface.sinklibrary.api.sender.IrcCommandSender;
 import de.static_interface.sinkscripts.scriptengine.ScriptHandler;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -66,7 +66,8 @@ public class ScriptChatListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void handleIrcMessage(IrcReceiveMessageEvent event) {
-        IrcCommandSender sender = new IrcCommandSender(event.getUser(), event.getChannel().getName());
+        IrcCommandSender sender = new IrcCommandSender(SinkLibrary.getInstance().getIrcUser(event.getUser()),
+                                                       event.getChannel().getName());
         if (!ScriptHandler.isEnabled(sender)) {
             return;
         }
