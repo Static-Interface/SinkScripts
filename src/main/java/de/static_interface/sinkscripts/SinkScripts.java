@@ -30,15 +30,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.logging.Level;
 
 public class SinkScripts extends JavaPlugin {
 
     public static File SCRIPTS_FOLDER;
-    public static File LIB_FOLDER;
     public static File FRAMEWORK_FOLDER;
 
     public void onEnable() {
@@ -47,39 +43,13 @@ public class SinkScripts extends JavaPlugin {
         }
 
         SCRIPTS_FOLDER = new File(SinkLibrary.getInstance().getCustomDataFolder(), "scripts");
-        LIB_FOLDER = new File(SCRIPTS_FOLDER, "libs");
-        FRAMEWORK_FOLDER = new File(LIB_FOLDER, "framework");
-
-        if ((!LIB_FOLDER.exists() && !LIB_FOLDER.mkdirs()) || (!SCRIPTS_FOLDER.exists() && !SCRIPTS_FOLDER.mkdirs())) {
-            SinkLibrary.getInstance().getCustomLogger().severe("Coudln't create scripts or lib directory!");
+        FRAMEWORK_FOLDER = new File(SCRIPTS_FOLDER, "framework");
+        if ((!FRAMEWORK_FOLDER.exists() && !FRAMEWORK_FOLDER.mkdirs()) || (!SCRIPTS_FOLDER.exists() && !SCRIPTS_FOLDER.mkdirs())) {
+            SinkLibrary.getInstance().getCustomLogger().severe("Coudln't create framework or scripts directory!");
         }
         setupProperties();
         registerCommands();
         registerScriptLanguages();
-
-        try {
-            File[] files = LIB_FOLDER.listFiles();
-            if (files != null) {
-                int i = 0;
-                for (File file : files) {
-                    if (file.getName().endsWith(".jar")) {
-                        getLogger().info("SinkScripts: Loading java library: " + file.getName());
-                        addURL(file.toURL());
-                        i++;
-                    }
-
-                    //if(file.getName().endsWith(".so") ||file.getName().endsWith("dll"))
-                    //{
-                    //    getLogger().info("SinkScripts: Loading native library: " + file.getName());
-                    //    System.loadLibrary(file.getCanonicalPath());
-                    //    i++;
-                    //}
-                }
-                SinkLibrary.getInstance().getCustomLogger().info("SinkScripts: Libraries loaded: " + i);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
         for (ScriptLanguage language : ScriptHandler.getScriptLanguages()) {
             language.init();
@@ -94,17 +64,6 @@ public class SinkScripts extends JavaPlugin {
         System.setProperty("CMSClassUnloadingEnabled", "true");
         System.setProperty("UseConcMarkSweepGC", "true");
         System.setProperty("CMSPermGenSweepingEnabled", "true");
-    }
-
-    public void addURL(URL url) throws Exception {
-        URLClassLoader classLoader
-                = (URLClassLoader) getClassLoader();
-        Class clazz = URLClassLoader.class;
-
-        // Use reflection
-        Method method = clazz.getDeclaredMethod("addURL", new Class[]{URL.class});
-        method.setAccessible(true);
-        method.invoke(classLoader, url);
     }
 
     private void registerScriptLanguages() {

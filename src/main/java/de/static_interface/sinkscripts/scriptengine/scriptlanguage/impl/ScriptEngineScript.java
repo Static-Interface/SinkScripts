@@ -52,8 +52,8 @@ public abstract class ScriptEngineScript extends ScriptLanguage {
     @Override
     public ShellInstance createNewShellInstance(CommandSender sender) {
         ScriptEngine e = new ScriptEngineManager
-                (new JoinClassLoader(((SinkScripts) plugin).getClazzLoader(), Bukkit.class.getClassLoader(),
-                                     SinkLibrary.class.getClassLoader())).getEngineByName(engineName);
+                (new JoinClassLoader(SinkLibrary.getInstance().getClazzLoader(), Bukkit.class.getClassLoader(),
+                                     ((SinkScripts)plugin).getClazzLoader())).getEngineByName(engineName);
         if (e == null) {
             throw new NullPointerException("Couldn't find ScriptEngine: " + engineName + ". Did you forgot to add a library?");
         }
