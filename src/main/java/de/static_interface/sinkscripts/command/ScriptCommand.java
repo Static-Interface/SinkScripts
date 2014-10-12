@@ -28,11 +28,7 @@ public class ScriptCommand extends SinkCommand {
 
     public ScriptCommand(Plugin plugin) {
         super(plugin);
-    }
-
-    @Override
-    public boolean isIrcOpOnly() {
-        return true;
+        getCommandOptions().setIrcOpOnly(true);
     }
 
     @Override
