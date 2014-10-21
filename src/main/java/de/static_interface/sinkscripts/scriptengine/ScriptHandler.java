@@ -80,7 +80,7 @@ public class ScriptHandler {
     }
 
     public static String getInternalName(CommandSender sender) {
-        return sender instanceof IrcCommandSender ? sender.getName() + ((IrcCommandSender)sender).getUser().getProvider().getCommandArgsSuffix() : sender.getName();
+        return sender instanceof IrcCommandSender ? sender.getName() + ((IrcCommandSender)sender).getUser().getProvider().getTabCompleterSuffix() : sender.getName();
     }
 
     public static void register(ScriptLanguage scriptLanguage) {
@@ -181,7 +181,6 @@ public class ScriptHandler {
                         }
                         shellInstance.setCode(code);
                     }
-                    SinkLibrary.getInstance().getUser(sender).sendDebugMessage(ChatColor.GOLD + "Script mode: " + ChatColor.RED + mode);
 
                     /* Todo:
                      * add permissions for commands, e.g. sinkscripts.use.help, sinkscripts.use.executefile etc...
