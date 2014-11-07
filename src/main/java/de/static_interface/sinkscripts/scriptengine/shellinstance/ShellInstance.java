@@ -19,6 +19,8 @@ package de.static_interface.sinkscripts.scriptengine.shellinstance;
 
 import org.bukkit.command.CommandSender;
 
+import javax.annotation.Nullable;
+
 public abstract class ShellInstance {
 
     private Object executor;
@@ -34,11 +36,12 @@ public abstract class ShellInstance {
         return executor;
     }
 
+    @Nullable
     public String getCode() {
         return code;
     }
 
-    public void setCode(String code) {
+    public void setCode(@Nullable String code) {
         this.code = code;
     }
 

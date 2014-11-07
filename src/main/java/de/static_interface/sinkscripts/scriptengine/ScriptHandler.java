@@ -21,6 +21,7 @@ import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.api.sender.IrcCommandSender;
 import de.static_interface.sinklibrary.api.user.SinkUser;
 import de.static_interface.sinklibrary.util.BukkitUtil;
+import de.static_interface.sinklibrary.util.StringUtil;
 import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguage;
 import de.static_interface.sinkscripts.scriptengine.shellinstance.ShellInstance;
 import de.static_interface.sinkscripts.scriptengine.shellinstance.impl.DummyShellInstance;
@@ -37,6 +38,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -95,6 +97,7 @@ public class ScriptHandler {
         availableParamters.add("--skipoutput");
         availableParamters.add("--clear");
         availableParamters.add("--noimports");
+
         boolean isExecute = line.startsWith(".execute");
         boolean async = isExecute && line.contains(" --async");
         final boolean skipOutput = isExecute && (line.contains(" --skipoutput"));
@@ -133,21 +136,62 @@ public class ScriptHandler {
 
         Runnable runnable = new Runnable() {
             String nl = Util.getNewLine();
-            String code = "";
+            String code = null;
 
             @SuppressWarnings("ConstantConditions")
             public void run() {
                 try {
-                    String currentLine = line;
-                    String[] args = currentLine.split(" ");
+                    String currentLine = "";
+
+                    if(line.toCharArray()[0] != '.') {
+                        currentLine = line;
+                    }
+
+                    String[] args = line.split(" ");
                     String mode = args[0].toLowerCase();
 
+                    //check if code was set before, to prevent NPE's
                     boolean codeSet = false;
+                    boolean isReplace = false;
+                    if (StringUtil.isStringEmptyOrNull(shellInstance.getCode())) {
+                        if (line.toCharArray()[0] != '.') { //command, don't add to code
+                            code = currentLine;
+                            codeSet = true;
+                        }
+                    }
 
-                    if (shellInstances.get(name).getCode() == null) {
-                        shellInstance.setCode(currentLine);
-                        code = currentLine;
-                        codeSet = true;
+                    if(code == null ) {
+                        code = shellInstance.getCode();
+                    }
+
+                    // remove last line and add the code after ^
+                    if(currentLine.trim().startsWith("^")) {
+                        List<String> lines = new ArrayList<>();
+                        lines.addAll(Arrays.asList(code.split(nl)));
+
+                        // remove last line
+                        if(lines.size() > 0) lines.remove(lines.size()-1);
+
+                        code = "";
+
+                        // if there is more than just a "^", add everything after that
+                        for(String s : lines) {
+                            code += nl + s;
+                        }
+
+                        //bad :(
+                        while(code.startsWith(nl)) {
+                            code = code.replaceFirst(nl, "");
+                        }
+
+                        if(!currentLine.trim().equals("^"))  {
+                            currentLine = currentLine.replaceFirst("\\^", "");
+                            isReplace = true;
+                        } else {
+                            sender.sendMessage(ChatColor.GOLD + "Removed last line");
+                            shellInstance.setCode(code);
+                            return;
+                        }
                     }
 
                     //dont use new line if line starts with "<" (e.g. if the line is too long or you want to add something to it)
@@ -157,30 +201,22 @@ public class ScriptHandler {
                         nl = "";
                     }
 
-                    if (currentLine.startsWith(".")) // command, don't add to code
-                    {
-                        code = code.replace(currentLine, "");
-                        currentLine = "";
-                    }
+                   boolean isImport = false;
 
-                    String prevCode = shellInstance.getCode();
+                   if (language != null && language.getImportIdentifier() != null) {
+                       for (String s : language.getImportIdentifier()) {
+                           if (currentLine.startsWith(s)) {
+                               code = currentLine + nl + code;
+                               isImport = true;
+                               break;
+                           }
+                       }
+                   }
 
-                    if (!codeSet) {
-                        boolean isImport = false;
-                        if (language != null && language.getImportIdentifier() != null) {
-                            for (String s : language.getImportIdentifier()) {
-                                if (language != null && currentLine.startsWith(s)) {
-                                    code = currentLine + nl + prevCode;
-                                    isImport = true;
-                                    break;
-                                }
-                            }
-                        }
-                        if (!isImport) {
-                            code = prevCode + nl + currentLine;
-                        }
-                        shellInstance.setCode(code);
-                    }
+                   if (!isImport && !codeSet) {
+                       code = code + nl + currentLine;
+                   }
+                   shellInstance.setCode(code);
 
                     /* Todo:
                      * add permissions for commands, e.g. sinkscripts.use.help, sinkscripts.use.executefile etc...
@@ -191,6 +227,7 @@ public class ScriptHandler {
                                                ".save <file>, .execute [file], .setvariable <name> <value>, .history, .clear, .setlanguage <language>");
                             break;
 
+                        case ".setl":
                         case ".setlanguage":
                             ScriptLanguage newLanguage = null;
                             for (ScriptLanguage lang : ScriptHandler.getScriptLanguages()) {
@@ -232,6 +269,7 @@ public class ScriptHandler {
                             sender.sendMessage(ChatColor.GOLD + "Available script languages: " + ChatColor.RESET + languages);
                             break;
 
+                        case ".sv":
                         case ".setvariable":
                             //if ( args.length < 1 || !currentLine.contains("=") )
                             //{
@@ -308,6 +346,7 @@ public class ScriptHandler {
                             sender.sendMessage(ChatColor.DARK_GREEN + "Code saved!");
                             break;
 
+                        case ".exec":
                         case ".execute":
 
                             setVariables(language, plugin, sender, shellInstance);
@@ -324,7 +363,7 @@ public class ScriptHandler {
                                 }
                                 String result;
                                 if (args.length >= 2 && !isParameter) {
-                                    result = String.valueOf(language.run(shellInstance, args[1], noImports, clear));
+                                    result = String.valueOf(language.run(shellInstance, Util.loadFile(args[1], language), noImports, clear));
                                 } else {
                                     result = String.valueOf(language.run(shellInstance, code, noImports, clear));
                                 }
@@ -337,18 +376,25 @@ public class ScriptHandler {
                             }
                             break;
 
+                        case ".showhistory":
                         case ".history":
                             sender.sendMessage(ChatColor.GOLD + "-------|History|-------");
-                            sender.sendMessage(ChatColor.WHITE + language.formatCode(code));
+                            if(shellInstance.getCode() != null) {
+                                for (String s : shellInstance.getCode().split(nl)) {
+                                    if(s == null) continue;
+                                    sender.sendMessage(ChatColor.WHITE + language.formatCode(s));
+                                }
+                            }
                             sender.sendMessage(ChatColor.GOLD + "-----------------------");
-                            break;
+                        break;
 
                         default:
                             if (mode.startsWith(".")) {
                                 sender.sendMessage('"' + mode + "\" is not a valid command");
                                 break;
                             }
-                            sender.sendMessage(ChatColor.DARK_GREEN + "[Input] " + ChatColor.WHITE + language.formatCode(currentLine));
+                            String prefix = isReplace ? ChatColor.GOLD + "[Replace]" : ChatColor.DARK_GREEN + "[Input]";
+                            sender.sendMessage(prefix + " " + ChatColor.WHITE + language.formatCode(currentLine));
                             break;
                     }
                     shellInstances.put(name, shellInstance);

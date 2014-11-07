@@ -36,12 +36,18 @@ public class SinkScripts extends JavaPlugin {
 
     public static File SCRIPTS_FOLDER;
     public static File FRAMEWORK_FOLDER;
+    private static SinkScripts instance;
 
+    public static SinkScripts getInstance() {
+        return instance;
+    }
+
+    @Override
     public void onEnable() {
         if (!checkDependencies()) {
             return;
         }
-
+        instance = this;
         SCRIPTS_FOLDER = new File(SinkLibrary.getInstance().getCustomDataFolder(), "scripts");
         FRAMEWORK_FOLDER = new File(SCRIPTS_FOLDER, "framework");
         if ((!FRAMEWORK_FOLDER.exists() && !FRAMEWORK_FOLDER.mkdirs()) || (!SCRIPTS_FOLDER.exists() && !SCRIPTS_FOLDER.mkdirs())) {
@@ -60,6 +66,10 @@ public class SinkScripts extends JavaPlugin {
         loadAutoStart();
     }
 
+    @Override
+    public void onDisable() {
+        instance = null;
+    }
     private void setupProperties() {
         System.setProperty("CMSClassUnloadingEnabled", "true");
         System.setProperty("UseConcMarkSweepGC", "true");
