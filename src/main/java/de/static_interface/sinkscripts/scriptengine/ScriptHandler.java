@@ -371,7 +371,7 @@ public class ScriptHandler {
                                 }
                                 String result;
 
-                                if(!isParameter) {
+                                if(!isParameter && args.length > 1) {
                                     scriptName = args[1];
                                     String tmp[] = scriptName.split("\\.");
 
