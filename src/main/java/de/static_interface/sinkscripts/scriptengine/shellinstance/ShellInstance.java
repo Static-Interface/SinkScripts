@@ -48,4 +48,10 @@ public abstract class ShellInstance {
     public CommandSender getSender() {
         return sender;
     }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "@" + Integer.toHexString(hashCode()) + " [executor=" + (executor == null ? "null" : executor.toString())
+               + ", sender=" + (sender == null ? "null" : sender.toString()) + "]";
+    }
 }

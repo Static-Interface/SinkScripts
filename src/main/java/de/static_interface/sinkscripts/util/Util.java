@@ -18,9 +18,7 @@
 package de.static_interface.sinkscripts.util;
 
 import de.static_interface.sinklibrary.SinkLibrary;
-import de.static_interface.sinklibrary.util.StringUtil;
 import de.static_interface.sinkscripts.SinkScripts;
-import de.static_interface.sinkscripts.scriptengine.ScriptHandler;
 import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguage;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -57,11 +55,11 @@ public class Util {
             return;
         }
 
-        SinkScripts.getInstance().getLogger().log(Level.WARNING, "[SinkScripts] Exception caused by " + sender.getName() + ": ");
+        SinkScripts.getInstance().getLogger().log(Level.WARNING, "Exception caused by " + sender.getName() + ": ");
         e.printStackTrace();
 
         //bad :(
-        if(e instanceof RuntimeException && e.getCause() instanceof ScriptException && e.getMessage().contains(e.getCause().getMessage())) {
+        if(e instanceof RuntimeException && e.getCause() != null && e.getCause() instanceof ScriptException && e.getMessage().contains(e.getCause().getMessage())) {
             e = e.getCause();
         }
 
@@ -70,36 +68,34 @@ public class Util {
             e = e.getCause();
         }
 
-        sender.sendMessage(ChatColor.DARK_RED + "Unexpected " + ((e instanceof Exception) ? "exception: " : "error (see console for more details): "));
-        String[] lines = null;
-        if (e.getMessage() != null) {
-            lines = e.getMessage().split(Util.getNewLine());
-        }
-        String msg = null;
-        if (lines != null && lines.length > 0) {
-            msg = lines[0] + (lines.length > 1 ? Util.getNewLine() + lines[1] : "");
-        }
-        sender.sendMessage(ChatColor.RED + e.getClass().getCanonicalName() + (msg == null ? "" : ": " + msg));
-
-        Throwable cause = e.getCause();
-        if(cause == null) {
-            return;
-        }
-
-        //Report all "Caused By" exceptions but don't show stacktraces
-        while (cause != null) {
+        String[] lines;
+        String msg = ChatColor.DARK_RED + "Unexpected " + ((e instanceof Exception) ? "exception" : "error") + " (see console for more details): ";
+        String source;
+        StackTraceElement element;
+        boolean first = true;
+        while (e != null) {
             lines = null;
 
-            if (cause.getMessage() != null) {
-                lines = cause.getMessage().split(Util.getNewLine());
+            if (e.getMessage() != null) {
+                lines = e.getMessage().split(Util.getNewLine());
             }
-            msg = null;
-            if (lines != null && lines.length > 0) {
-                msg = lines[0] + (lines.length > 1 ? Util.getNewLine() + lines[1] : "");
-            }
-            sender.sendMessage(ChatColor.RED + "Caused by: " + cause.getClass().getCanonicalName() + (msg == null ? "" : ": " + msg));
 
-            cause = cause.getCause();
+            if (lines != null && lines.length > 0) {
+                msg = msg + lines[0] + (lines.length > 1 ? Util.getNewLine() + lines[1] : "");
+            }
+
+            source = "";
+            try {
+                element = e.getStackTrace()[0];
+                source = " (" + Class.forName(element.getClassName()).getSimpleName() + ".class:" + element.getLineNumber() + ")";
+            } catch (ClassNotFoundException e1) {
+                e1.printStackTrace();
+            }
+
+            sender.sendMessage(ChatColor.RED + (first ? "" : "Caused by: ") + e.getClass().getCanonicalName() + (msg == null ? "" : ": " + msg) + source);
+            if(first) first = false;
+            e = e.getCause();
+            msg = "";
         }
     }
 
@@ -120,25 +116,8 @@ public class Util {
         return sb.toString();
     }
 
+    @Nullable
     public static String loadFile(String scriptName, @Nullable ScriptLanguage language) throws IOException {
-        String tmp[] = scriptName.split("\\.");
-        if(tmp.length < 1 && language == null) {
-            throw new IllegalStateException("Couldn't find extension:");
-        }
-
-        String extension = tmp[tmp.length -1];
-        ScriptLanguage tmpLanguage = ScriptHandler.getScriptLanguageByExtension(extension); // get language by extension
-
-        if(tmpLanguage == null && language == null) {
-            throw new IllegalArgumentException("Couldn't find ScriptLanguage instance for input: " + scriptName);
-        }
-
-        if(tmpLanguage != null) {
-            language = tmpLanguage;
-        }
-
-        scriptName = StringUtil.formatArrayToString(tmp, ".", 0, tmp.length - 1); // remove extension
-
         File scriptFile = new File(language.SCRIPTLANGUAGE_DIRECTORY, scriptName + "." + language.getFileExtension());
         if (!scriptFile.exists()) {
             SinkLibrary.getInstance().getCustomLogger().debug("Couldn't find file: " + scriptFile.getAbsolutePath());

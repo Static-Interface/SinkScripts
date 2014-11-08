@@ -21,6 +21,7 @@ import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.api.sender.IrcCommandSender;
 import de.static_interface.sinklibrary.api.user.SinkUser;
 import de.static_interface.sinklibrary.util.BukkitUtil;
+import de.static_interface.sinklibrary.util.Debug;
 import de.static_interface.sinklibrary.util.StringUtil;
 import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguage;
 import de.static_interface.sinkscripts.scriptengine.shellinstance.ShellInstance;
@@ -47,7 +48,6 @@ import java.util.logging.Level;
 public class ScriptHandler {
 
     protected static HashMap<String, ShellInstance> shellInstances = new HashMap<>(); // PlayerName - Shell Instance
-    volatile static ShellInstance shellInstance;
     private static ArrayList<String> enabledUsers = new ArrayList<>();
     private static HashMap<String, ScriptLanguage> scriptLanguages = new HashMap<>();
     private static HashMap<String, ScriptLanguage> languageInstances = new HashMap<>();
@@ -91,7 +91,7 @@ public class ScriptHandler {
     }
 
     public static void handleLine(final CommandSender sender, final String line, final Plugin plugin) {
-        final String name = ScriptHandler.getInternalName(sender);
+        ShellInstance shellInstance;
         final List<String> availableParamters = new ArrayList<>();
         availableParamters.add("--async");
         availableParamters.add("--skipoutput");
@@ -108,7 +108,8 @@ public class ScriptHandler {
         final boolean isAutostartSave = isSave && line.contains(" --autostart");
 
         final ScriptLanguage language = getLanguage(sender);
-        if (language == null && (!line.startsWith(".setlanguage") && !line.startsWith(".help") && !line.startsWith(".listlanguages"))) {
+        if (language == null && (!line.startsWith(".setlanguage") && !line.startsWith(".execute") && !line.startsWith(".help") && !line
+                .startsWith(".listlanguages"))) {
             sender.sendMessage("Language not set! Use .setlanguage <language>");
             return;
         }
@@ -134,10 +135,12 @@ public class ScriptHandler {
             throw new IllegalStateException("Couldn't create shellInstance!");
         }
 
+        final ShellInstance tmpInstance = shellInstance;
+
         Runnable runnable = new Runnable() {
             String nl = Util.getNewLine();
             String code = null;
-
+            ShellInstance localShellInstance = tmpInstance;
             @SuppressWarnings("ConstantConditions")
             public void run() {
                 try {
@@ -153,7 +156,7 @@ public class ScriptHandler {
                     //check if code was set before, to prevent NPE's
                     boolean codeSet = false;
                     boolean isReplace = false;
-                    if (StringUtil.isStringEmptyOrNull(shellInstance.getCode())) {
+                    if (StringUtil.isStringEmptyOrNull(localShellInstance.getCode())) {
                         if (line.toCharArray()[0] != '.') { //command, don't add to code
                             code = currentLine;
                             codeSet = true;
@@ -161,7 +164,7 @@ public class ScriptHandler {
                     }
 
                     if(code == null ) {
-                        code = shellInstance.getCode();
+                        code = localShellInstance.getCode();
                     }
 
                     // remove last line and add the code after ^
@@ -189,7 +192,7 @@ public class ScriptHandler {
                             isReplace = true;
                         } else {
                             sender.sendMessage(ChatColor.GOLD + "Removed last line");
-                            shellInstance.setCode(code);
+                            localShellInstance.setCode(code);
                             return;
                         }
                     }
@@ -201,22 +204,22 @@ public class ScriptHandler {
                         nl = "";
                     }
 
-                   boolean isImport = false;
+                    boolean isImport = false;
 
-                   if (language != null && language.getImportIdentifier() != null) {
-                       for (String s : language.getImportIdentifier()) {
-                           if (currentLine.startsWith(s)) {
-                               code = currentLine + nl + code;
-                               isImport = true;
-                               break;
-                           }
-                       }
-                   }
+                    if (language != null && language.getImportIdentifier() != null) {
+                        for (String s : language.getImportIdentifier()) {
+                            if (currentLine.startsWith(s)) {
+                                code = currentLine + nl + code;
+                                isImport = true;
+                                break;
+                            }
+                        }
+                    }
 
-                   if (!isImport && !codeSet) {
-                       code = code + nl + currentLine;
-                   }
-                   shellInstance.setCode(code);
+                    if (!isImport && !codeSet) {
+                        code = code + nl + currentLine;
+                    }
+                    localShellInstance.setCode(code);
 
                     /* Todo:
                      * add permissions for commands, e.g. sinkscripts.use.help, sinkscripts.use.executefile etc...
@@ -241,16 +244,17 @@ public class ScriptHandler {
                                 break;
                             }
                             if (sender instanceof ConsoleCommandSender) {
-                                shellInstance = language.getConsoleShellInstance();
+                                localShellInstance = newLanguage.getConsoleShellInstance();
                             } else {
-                                shellInstance = newLanguage.createNewShellInstance(sender);
+                                localShellInstance = newLanguage.createNewShellInstance(sender);
                             }
+                            shellInstances.put(ScriptHandler.getInternalName(sender), localShellInstance);
                             setLanguage(sender, newLanguage);
                             sender.sendMessage(ChatColor.GOLD + "Language has been set to: " + ChatColor.RED + newLanguage.getName());
                             break;
 
                         case ".clear":
-                            shellInstance.setCode("");
+                            localShellInstance.setCode("");
                             sender.sendMessage(ChatColor.DARK_RED + "History cleared");
                             break;
 
@@ -285,7 +289,7 @@ public class ScriptHandler {
                                 }
 
                                 Object value = language.getValue(rawValue);
-                                language.setVariable(shellInstance, variableName, value);
+                                language.setVariable(localShellInstance, variableName, value);
                                 sender.sendMessage(
                                         ChatColor.BLUE + variableName + ChatColor.RESET + " has been successfully set to " + ChatColor.RED + value
                                         + ChatColor.RESET + " (" + ChatColor.BLUE + value.getClass().getSimpleName() + ")");
@@ -302,7 +306,7 @@ public class ScriptHandler {
                             String scriptName = args[1];
 
                             try {
-                                shellInstance.setCode(Util.loadFile(scriptName, language) + code);
+                                localShellInstance.setCode(Util.loadFile(scriptName, language) + code);
                             } catch (FileNotFoundException ignored) {
                                 sender.sendMessage(ChatColor.DARK_RED + "File doesn't exists!");
                                 break;
@@ -314,7 +318,7 @@ public class ScriptHandler {
                             break;
                         }
 
-                        case ".save":
+                        case ".save": {
                             if (args.length < 2) {
                                 sender.sendMessage(ChatColor.DARK_RED + "Too few arguments! .save <File>");
                                 break;
@@ -345,14 +349,18 @@ public class ScriptHandler {
                             writer.close();
                             sender.sendMessage(ChatColor.DARK_GREEN + "Code saved!");
                             break;
-
+                        }
                         case ".exec":
                         case ".execute":
 
-                            setVariables(language, plugin, sender, shellInstance);
+                            if (language != null) {
+                                setVariables(language, plugin, sender, localShellInstance);
+                            }
 
+                            ScriptLanguage contextLanguage = language;
                             try {
                                 boolean isParameter = false;
+                                String scriptName = null;
                                 if (args.length > 1) {
                                     for (String s : availableParamters) {
                                         if (s.equals(args[1])) {
@@ -362,25 +370,58 @@ public class ScriptHandler {
                                     }
                                 }
                                 String result;
-                                if (args.length >= 2 && !isParameter) {
-                                    result = String.valueOf(language.run(shellInstance, Util.loadFile(args[1], language), noImports, clear));
+
+                                if(!isParameter) {
+                                    scriptName = args[1];
+                                    String tmp[] = scriptName.split("\\.");
+
+                                    if (tmp.length < 1 && language == null) {
+                                        throw new IllegalStateException("Couldn't find extension for language file: " + scriptName);
+                                    }
+
+                                    String extension = tmp[tmp.length - 1];
+                                    ScriptLanguage
+                                            tmpLanguage =
+                                            ScriptHandler.getScriptLanguageByExtension(extension); // get language by extension
+                                    if (tmpLanguage == null && language == null) {
+                                        sender.sendMessage(ChatColor.DARK_RED
+                                                           + "Language not set and/or invalid file extension! Use .execute <file> or .setlanguage <language>");
+                                    }
+
+                                    if (tmpLanguage != null) {
+                                        contextLanguage = tmpLanguage;
+                                        if (localShellInstance == null) {
+                                            localShellInstance = contextLanguage.createNewShellInstance(sender);
+                                            shellInstances.put(getInternalName(sender), localShellInstance);
+                                        }
+                                    }
+
+                                    scriptName = StringUtil.formatArrayToString(tmp, ".", 0, tmp.length - 1); // remove extension
+                                }
+
+                                if (args.length > 1 && !isParameter) {
+                                    Debug.log(localShellInstance);
+                                    result =
+                                            String.valueOf(contextLanguage
+                                                                   .run(localShellInstance, Util.loadFile(scriptName, contextLanguage), noImports,
+                                                                        clear));
                                 } else {
-                                    result = String.valueOf(language.run(shellInstance, code, noImports, clear));
+                                    result = String.valueOf(contextLanguage.run(localShellInstance, code, noImports, clear));
                                 }
 
                                 if (!skipOutput) {
-                                    sender.sendMessage(ChatColor.AQUA + "Output: " + ChatColor.GREEN + language.formatCode(result));
+                                    sender.sendMessage(ChatColor.AQUA + "Output: " + ChatColor.GREEN + contextLanguage.formatCode(result));
                                 }
-                            } catch (Exception e) {
-                                Util.reportException(sender, e);
+                            } catch (Throwable thr) {
+                                Util.reportException(sender, thr);
                             }
                             break;
 
                         case ".showhistory":
                         case ".history":
                             sender.sendMessage(ChatColor.GOLD + "-------|History|-------");
-                            if(shellInstance.getCode() != null) {
-                                for (String s : shellInstance.getCode().split(nl)) {
+                            if (localShellInstance.getCode() != null) {
+                                for (String s : localShellInstance.getCode().split(nl)) {
                                     if(s == null) continue;
                                     sender.sendMessage(ChatColor.WHITE + language.formatCode(s));
                                 }
@@ -397,7 +438,7 @@ public class ScriptHandler {
                             sender.sendMessage(prefix + " " + ChatColor.WHITE + language.formatCode(currentLine));
                             break;
                     }
-                    shellInstances.put(name, shellInstance);
+                    shellInstances.put(ScriptHandler.getInternalName(sender), localShellInstance);
                 } catch (Throwable e) {
                     Util.reportException(sender, e);
                 }
