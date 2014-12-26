@@ -33,20 +33,20 @@
     </licenses>
 
     <organization>
-        <name>Adventuria Developer Team</name>
-        <url>http://adventuria.eu/</url>
+        <name>Static Interface</name>
+        <url>http://static-interface.de/</url>
     </organization>
+
+    <ciManagement>
+        <system>Static Interface CI</system>
+        <url>http://ci.static-interface.de/</url>
+    </ciManagement>
 
     <scm>
         <connection>scm:git:https://github.com/Adventuria/Sink-Plugins.git</connection>
         <developerConnection>scm:git:https://github.com/Adventuria/SinkScripts.git</developerConnection>
         <url>https://github.com/Adventuria/SinkScripts</url>
     </scm>
-
-    <ciManagement>
-        <system>Static Interface</system>
-        <url>http://ci.static-interface.de/</url>
-    </ciManagement>
 
     <repositories>
         <repository>
