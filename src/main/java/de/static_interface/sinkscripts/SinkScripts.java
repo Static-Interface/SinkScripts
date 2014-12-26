@@ -51,7 +51,7 @@ public class SinkScripts extends JavaPlugin {
         SCRIPTS_FOLDER = new File(SinkLibrary.getInstance().getCustomDataFolder(), "scripts");
         FRAMEWORK_FOLDER = new File(SCRIPTS_FOLDER, "framework");
         if ((!FRAMEWORK_FOLDER.exists() && !FRAMEWORK_FOLDER.mkdirs()) || (!SCRIPTS_FOLDER.exists() && !SCRIPTS_FOLDER.mkdirs())) {
-            SinkLibrary.getInstance().getCustomLogger().severe("Coudln't create framework or scripts directory!");
+            getLogger().warning("Coudln't create framework or scripts directory!");
         }
         setupProperties();
         registerCommands();
@@ -70,6 +70,7 @@ public class SinkScripts extends JavaPlugin {
     public void onDisable() {
         instance = null;
     }
+
     private void setupProperties() {
         System.setProperty("CMSClassUnloadingEnabled", "true");
         System.setProperty("UseConcMarkSweepGC", "true");

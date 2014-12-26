@@ -17,18 +17,18 @@
 
 package de.static_interface.sinkscripts.scriptengine.shellinstance;
 
-import org.bukkit.command.CommandSender;
+import de.static_interface.sinklibrary.api.user.*;
 
-import javax.annotation.Nullable;
+import javax.annotation.*;
 
 public abstract class ShellInstance {
 
     private Object executor;
     private String code;
-    private CommandSender sender;
+    private SinkUser user;
 
-    public ShellInstance(CommandSender sender, Object executor) {
-        this.sender = sender;
+    public ShellInstance(SinkUser user, Object executor) {
+        this.user = user;
         this.executor = executor;
     }
 
@@ -45,13 +45,13 @@ public abstract class ShellInstance {
         this.code = code;
     }
 
-    public CommandSender getSender() {
-        return sender;
+    public SinkUser getUser() {
+        return user;
     }
 
     @Override
     public String toString() {
         return getClass().getSimpleName() + "@" + Integer.toHexString(hashCode()) + " [executor=" + (executor == null ? "null" : executor.toString())
-               + ", sender=" + (sender == null ? "null" : sender.toString()) + "]";
+               + ", user=" + (user== null ? "null" : user.toString()) + "]";
     }
 }

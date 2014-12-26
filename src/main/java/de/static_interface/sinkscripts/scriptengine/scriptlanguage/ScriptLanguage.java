@@ -17,20 +17,18 @@
 
 package de.static_interface.sinkscripts.scriptengine.scriptlanguage;
 
-import static de.static_interface.sinkscripts.SinkScripts.SCRIPTS_FOLDER;
+import static de.static_interface.sinkscripts.SinkScripts.*;
 
-import de.static_interface.sinklibrary.SinkLibrary;
-import de.static_interface.sinkscripts.scriptengine.ScriptHandler;
-import de.static_interface.sinkscripts.scriptengine.shellinstance.ShellInstance;
-import de.static_interface.sinkscripts.util.Util;
-import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
-import org.bukkit.plugin.Plugin;
+import de.static_interface.sinklibrary.*;
+import de.static_interface.sinklibrary.api.user.*;
+import de.static_interface.sinkscripts.scriptengine.*;
+import de.static_interface.sinkscripts.scriptengine.shellinstance.*;
+import de.static_interface.sinkscripts.util.*;
+import org.bukkit.plugin.*;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.logging.Level;
+import java.io.*;
+import java.util.*;
+import java.util.logging.*;
 
 public abstract class ScriptLanguage {
 
@@ -67,7 +65,7 @@ public abstract class ScriptLanguage {
     public abstract String formatCode(String code);
 
     public Object run(ShellInstance instance, String code, boolean skipImports, boolean clear) {
-        SinkLibrary.getInstance().getCustomLogger().logToFile(Level.INFO, instance.getSender().getName() + " executed script: " + code);
+        SinkLibrary.getInstance().getCustomLogger().logToFile(Level.INFO, instance.getUser().getName() + " executed script: " + code);
 
         if (!skipImports) {
             code = onUpdateImports(code);
@@ -81,7 +79,7 @@ public abstract class ScriptLanguage {
     }
 
     protected Object run(ShellInstance instance, File file) {
-        SinkLibrary.getInstance().getCustomLogger().logToFile(Level.INFO, instance.getSender().getName() + " executed script file: " + file);
+        SinkLibrary.getInstance().getCustomLogger().logToFile(Level.INFO, instance.getUser().getName() + " executed script file: " + file);
 
         setVariable(instance, "scriptfile", file);
         try {
@@ -166,7 +164,7 @@ public abstract class ScriptLanguage {
 
     protected abstract String getDefaultImports();
 
-    public abstract ShellInstance createNewShellInstance(CommandSender sender);
+    public abstract ShellInstance createNewShellInstance(SinkUser user);
 
     public abstract void setVariable(ShellInstance instance, String name, Object value);
 
@@ -189,8 +187,7 @@ public abstract class ScriptLanguage {
                     continue;
                 }
 
-                CommandSender sender = getConsoleShellInstance().getSender();
-                ScriptHandler.setVariables(this, plugin, sender, getConsoleShellInstance());
+                ScriptHandler.setVariables(this, plugin, getConsoleShellInstance().getUser(), getConsoleShellInstance());
 
                 run(getConsoleShellInstance(), file);
             }
@@ -215,7 +212,7 @@ public abstract class ScriptLanguage {
 
     public ShellInstance getConsoleShellInstance() {
         if (consoleShellInstance == null) {
-            consoleShellInstance = createNewShellInstance(Bukkit.getConsoleSender());
+            consoleShellInstance = createNewShellInstance(SinkLibrary.getInstance().getConsoleUser());
         }
         return consoleShellInstance;
     }

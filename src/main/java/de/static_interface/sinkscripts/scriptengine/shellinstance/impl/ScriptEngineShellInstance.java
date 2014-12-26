@@ -17,15 +17,15 @@
 
 package de.static_interface.sinkscripts.scriptengine.shellinstance.impl;
 
-import de.static_interface.sinkscripts.scriptengine.shellinstance.ShellInstance;
-import org.bukkit.command.CommandSender;
+import de.static_interface.sinklibrary.api.user.*;
+import de.static_interface.sinkscripts.scriptengine.shellinstance.*;
 
-import javax.script.ScriptEngine;
+import javax.script.*;
 
 public class ScriptEngineShellInstance extends ShellInstance {
 
-    public ScriptEngineShellInstance(CommandSender sender, ScriptEngine engine) {
-        super(sender, engine);
+    public ScriptEngineShellInstance(SinkUser user, ScriptEngine engine) {
+        super(user, engine);
     }
 
 }

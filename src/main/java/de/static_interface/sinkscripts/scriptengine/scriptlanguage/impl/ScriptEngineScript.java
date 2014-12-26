@@ -17,19 +17,17 @@
 
 package de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl;
 
-import de.static_interface.sinklibrary.SinkLibrary;
-import de.static_interface.sinkscripts.SinkScripts;
-import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguage;
-import de.static_interface.sinkscripts.scriptengine.shellinstance.ShellInstance;
-import de.static_interface.sinkscripts.scriptengine.shellinstance.impl.ScriptEngineShellInstance;
-import de.static_interface.sinkscripts.util.JoinClassLoader;
-import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
-import org.bukkit.plugin.Plugin;
+import de.static_interface.sinklibrary.*;
+import de.static_interface.sinklibrary.api.user.*;
+import de.static_interface.sinkscripts.*;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.*;
+import de.static_interface.sinkscripts.scriptengine.shellinstance.*;
+import de.static_interface.sinkscripts.scriptengine.shellinstance.impl.*;
+import de.static_interface.sinkscripts.util.*;
+import org.bukkit.*;
+import org.bukkit.plugin.*;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
+import javax.script.*;
 
 public abstract class ScriptEngineScript extends ScriptLanguage {
 
@@ -50,14 +48,14 @@ public abstract class ScriptEngineScript extends ScriptLanguage {
     }
 
     @Override
-    public ShellInstance createNewShellInstance(CommandSender sender) {
+    public ShellInstance createNewShellInstance(SinkUser user) {
         ScriptEngine e = new ScriptEngineManager
                 (new JoinClassLoader(SinkLibrary.getInstance().getClazzLoader(), Bukkit.class.getClassLoader(),
                                      ((SinkScripts)plugin).getClazzLoader())).getEngineByName(engineName);
         if (e == null) {
             throw new NullPointerException("Couldn't find ScriptEngine: " + engineName + ". Did you forgot to add a library?");
         }
-        return new ScriptEngineShellInstance(sender, e);
+        return new ScriptEngineShellInstance(user, e);
     }
 
     @Override

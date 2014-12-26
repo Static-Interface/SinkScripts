@@ -17,33 +17,23 @@
 
 package de.static_interface.sinkscripts.scriptengine;
 
-import de.static_interface.sinklibrary.SinkLibrary;
-import de.static_interface.sinklibrary.api.sender.IrcCommandSender;
-import de.static_interface.sinklibrary.api.user.SinkUser;
-import de.static_interface.sinklibrary.util.BukkitUtil;
-import de.static_interface.sinklibrary.util.Debug;
+import de.static_interface.sinklibrary.api.user.*;
+import de.static_interface.sinklibrary.user.*;
+import de.static_interface.sinklibrary.util.*;
 import de.static_interface.sinklibrary.util.StringUtil;
-import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguage;
-import de.static_interface.sinkscripts.scriptengine.shellinstance.ShellInstance;
-import de.static_interface.sinkscripts.scriptengine.shellinstance.impl.DummyShellInstance;
-import de.static_interface.sinkscripts.util.Util;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
-import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.util.BlockIterator;
+import de.static_interface.sinkscripts.*;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.*;
+import de.static_interface.sinkscripts.scriptengine.shellinstance.*;
+import de.static_interface.sinkscripts.scriptengine.shellinstance.impl.*;
+import de.static_interface.sinkscripts.util.*;
+import org.bukkit.*;
+import org.bukkit.entity.*;
+import org.bukkit.plugin.*;
+import org.bukkit.util.*;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.logging.Level;
+import java.io.*;
+import java.util.*;
+import java.util.logging.*;
 
 public class ScriptHandler {
 
@@ -69,20 +59,22 @@ public class ScriptHandler {
         return null;
     }
 
-    public static boolean isEnabled(CommandSender sender) {
-        return enabledUsers.contains(getInternalName(sender));
+    public static boolean isEnabled(SinkUser user) {
+        return enabledUsers.contains(getInternalName(user));
     }
 
-    public static void setEnabled(CommandSender sender, boolean enabled) {
+    public static void setEnabled(SinkUser user, boolean enabled) {
         if (enabled) {
-            enabledUsers.add(getInternalName(sender));
+            enabledUsers.add(getInternalName(user));
         } else {
-            enabledUsers.remove(getInternalName(sender));
+            enabledUsers.remove(getInternalName(user));
         }
     }
 
-    public static String getInternalName(CommandSender sender) {
-        return sender instanceof IrcCommandSender ? sender.getName() + ((IrcCommandSender)sender).getUser().getProvider().getTabCompleterSuffix() : sender.getName();
+    public static String getInternalName(SinkUser user) {
+        String suffix = user.getProvider().getTabCompleterSuffix();
+        if(suffix == null) suffix = "";
+        return user.getName() + suffix;
     }
 
     public static void register(ScriptLanguage scriptLanguage) {
@@ -90,7 +82,7 @@ public class ScriptHandler {
         scriptLanguage.preInit();
     }
 
-    public static void handleLine(final CommandSender sender, final String line, final Plugin plugin) {
+    public static void handleLine(final SinkUser user, final String line, final Plugin plugin) {
         ShellInstance shellInstance;
         final List<String> availableParamters = new ArrayList<>();
         availableParamters.add("--async");
@@ -107,27 +99,27 @@ public class ScriptHandler {
         boolean isSave = line.startsWith(".save");
         final boolean isAutostartSave = isSave && line.contains(" --autostart");
 
-        final ScriptLanguage language = getLanguage(sender);
+        final ScriptLanguage language = getLanguage(user);
         if (language == null && (!line.startsWith(".setlanguage") && !line.startsWith(".execute") && !line.startsWith(".help") && !line
                 .startsWith(".listlanguages"))) {
-            sender.sendMessage("Language not set! Use .setlanguage <language>");
+            user.sendMessage("Language not set! Use .setlanguage <language>");
             return;
         }
-        if (sender instanceof ConsoleCommandSender) {
+        if (user instanceof ConsoleUser) {
             shellInstance = language.getConsoleShellInstance();
         } else {
-            shellInstance = shellInstances.get(ScriptHandler.getInternalName(sender));
+            shellInstance = shellInstances.get(ScriptHandler.getInternalName(user));
         }
         if (shellInstance == null) {
-            SinkLibrary.getInstance().getCustomLogger().log(Level.INFO, "Initializing ShellInstance for " + sender.getName());
+            SinkScripts.getInstance().getLogger().log(Level.INFO, "Initializing ShellInstance for " + user.getName());
 
             if (language == null) {
-                shellInstance = new DummyShellInstance(sender, null); // Used for .setLanguage
+                shellInstance = new DummyShellInstance(user, null); // Used for .setLanguage
             } else {
-                shellInstance = language.createNewShellInstance(sender);
+                shellInstance = language.createNewShellInstance(user);
             }
 
-            shellInstances.put(ScriptHandler.getInternalName(sender), shellInstance);
+            shellInstances.put(ScriptHandler.getInternalName(user), shellInstance);
         }
 
         // Still null?!
@@ -191,7 +183,7 @@ public class ScriptHandler {
                             currentLine = currentLine.replaceFirst("\\^", "");
                             isReplace = true;
                         } else {
-                            sender.sendMessage(ChatColor.GOLD + "Removed last line");
+                            user.sendMessage(ChatColor.GOLD + "Removed last line");
                             localShellInstance.setCode(code);
                             return;
                         }
@@ -226,7 +218,7 @@ public class ScriptHandler {
                      */
                     switch (mode) {
                         case ".help":
-                            sender.sendMessage(ChatColor.GREEN + "[Help] " + ChatColor.GRAY + "Available Commands: .help, .load <file>, " +
+                            user.sendMessage(ChatColor.GREEN + "[Help] " + ChatColor.GRAY + "Available Commands: .help, .load <file>, " +
                                                ".save <file>, .execute [file], .setvariable <name> <value>, .history, .clear, .setlanguage <language>");
                             break;
 
@@ -240,22 +232,22 @@ public class ScriptHandler {
                                 }
                             }
                             if (newLanguage == null) {
-                                sender.sendMessage("Unknown language: " + args[1]);
+                                user.sendMessage("Unknown language: " + args[1]);
                                 break;
                             }
-                            if (sender instanceof ConsoleCommandSender) {
+                            if (user instanceof ConsoleUser) {
                                 localShellInstance = newLanguage.getConsoleShellInstance();
                             } else {
-                                localShellInstance = newLanguage.createNewShellInstance(sender);
+                                localShellInstance = newLanguage.createNewShellInstance(user);
                             }
-                            shellInstances.put(ScriptHandler.getInternalName(sender), localShellInstance);
-                            setLanguage(sender, newLanguage);
-                            sender.sendMessage(ChatColor.GOLD + "Language has been set to: " + ChatColor.RED + newLanguage.getName());
+                            shellInstances.put(ScriptHandler.getInternalName(user), localShellInstance);
+                            setLanguage(user, newLanguage);
+                            user.sendMessage(ChatColor.GOLD + "Language has been set to: " + ChatColor.RED + newLanguage.getName());
                             break;
 
                         case ".clear":
                             localShellInstance.setCode("");
-                            sender.sendMessage(ChatColor.DARK_RED + "History cleared");
+                            user.sendMessage(ChatColor.DARK_RED + "History cleared");
                             break;
 
                         case ".listlanguages":
@@ -270,7 +262,7 @@ public class ScriptHandler {
                                 languages += ", " + language.getName();
                             }
 
-                            sender.sendMessage(ChatColor.GOLD + "Available script languages: " + ChatColor.RESET + languages);
+                            user.sendMessage(ChatColor.GOLD + "Available script languages: " + ChatColor.RESET + languages);
                             break;
 
                         case ".sv":
@@ -290,17 +282,17 @@ public class ScriptHandler {
 
                                 Object value = language.getValue(rawValue);
                                 language.setVariable(localShellInstance, variableName, value);
-                                sender.sendMessage(
+                                user.sendMessage(
                                         ChatColor.BLUE + variableName + ChatColor.RESET + " has been successfully set to " + ChatColor.RED + value
                                         + ChatColor.RESET + " (" + ChatColor.BLUE + value.getClass().getSimpleName() + ")");
                             } catch (Exception e) {
-                                Util.reportException(sender, e);
+                                Util.reportException(user, e);
                             }
                             break;
 
                         case ".load": {
                             if (args.length < 2) {
-                                sender.sendMessage(ChatColor.DARK_RED + "Too few arguments! .load <File>");
+                                user.sendMessage(ChatColor.DARK_RED + "Too few arguments! .load <File>");
                                 break;
                             }
                             String scriptName = args[1];
@@ -308,19 +300,19 @@ public class ScriptHandler {
                             try {
                                 localShellInstance.setCode(Util.loadFile(scriptName, language) + code);
                             } catch (FileNotFoundException ignored) {
-                                sender.sendMessage(ChatColor.DARK_RED + "File doesn't exists!");
+                                user.sendMessage(ChatColor.DARK_RED + "File doesn't exists!");
                                 break;
                             } catch (Exception e) {
-                                Util.reportException(sender, e);
+                                Util.reportException(user, e);
                                 break;
                             }
-                            sender.sendMessage(ChatColor.DARK_GREEN + "File loaded");
+                            user.sendMessage(ChatColor.DARK_GREEN + "File loaded");
                             break;
                         }
 
                         case ".save": {
                             if (args.length < 2) {
-                                sender.sendMessage(ChatColor.DARK_RED + "Too few arguments! .save <File>");
+                                user.sendMessage(ChatColor.DARK_RED + "Too few arguments! .save <File>");
                                 break;
                             }
                             String scriptName = args[1];
@@ -342,19 +334,19 @@ public class ScriptHandler {
                             try {
                                 writer = new PrintWriter(scriptFile, "UTF-8");
                             } catch (Exception e) {
-                                Util.reportException(sender, e);
+                                Util.reportException(user, e);
                                 break;
                             }
                             writer.write(code);
                             writer.close();
-                            sender.sendMessage(ChatColor.DARK_GREEN + "Code saved!");
+                            user.sendMessage(ChatColor.DARK_GREEN + "Code saved!");
                             break;
                         }
                         case ".exec":
                         case ".execute":
 
                             if (language != null) {
-                                setVariables(language, plugin, sender, localShellInstance);
+                                setVariables(language, plugin, user, localShellInstance);
                             }
 
                             ScriptLanguage contextLanguage = language;
@@ -384,15 +376,15 @@ public class ScriptHandler {
                                             tmpLanguage =
                                             ScriptHandler.getScriptLanguageByExtension(extension); // get language by extension
                                     if (tmpLanguage == null && language == null) {
-                                        sender.sendMessage(ChatColor.DARK_RED
+                                        user.sendMessage(ChatColor.DARK_RED
                                                            + "Language not set and/or invalid file extension! Use .execute <file> or .setlanguage <language>");
                                     }
 
                                     if (tmpLanguage != null) {
                                         contextLanguage = tmpLanguage;
                                         if (localShellInstance == null) {
-                                            localShellInstance = contextLanguage.createNewShellInstance(sender);
-                                            shellInstances.put(getInternalName(sender), localShellInstance);
+                                            localShellInstance = contextLanguage.createNewShellInstance(user);
+                                            shellInstances.put(getInternalName(user), localShellInstance);
                                         }
                                     }
 
@@ -410,37 +402,37 @@ public class ScriptHandler {
                                 }
 
                                 if (!skipOutput) {
-                                    sender.sendMessage(ChatColor.AQUA + "Output: " + ChatColor.GREEN + contextLanguage.formatCode(result));
+                                    user.sendMessage(ChatColor.AQUA + "Output: " + ChatColor.GREEN + contextLanguage.formatCode(result));
                                 }
                             } catch (Throwable thr) {
-                                Util.reportException(sender, thr);
+                                Util.reportException(user, thr);
                             }
                             break;
 
                         case ".showhistory":
                         case ".history":
-                            sender.sendMessage(ChatColor.GOLD + "-------|History|-------");
+                            user.sendMessage(ChatColor.GOLD + "-------|History|-------");
                             if (localShellInstance.getCode() != null) {
                                 for (String s : localShellInstance.getCode().split(nl)) {
                                     if(s == null) continue;
-                                    sender.sendMessage(ChatColor.WHITE + language.formatCode(s));
+                                    user.sendMessage(ChatColor.WHITE + language.formatCode(s));
                                 }
                             }
-                            sender.sendMessage(ChatColor.GOLD + "-----------------------");
+                            user.sendMessage(ChatColor.GOLD + "-----------------------");
                         break;
 
                         default:
                             if (mode.startsWith(".")) {
-                                sender.sendMessage('"' + mode + "\" is not a valid command");
+                                user.sendMessage('"' + mode + "\" is not a valid command");
                                 break;
                             }
                             String prefix = isReplace ? ChatColor.GOLD + "[Replace]" : ChatColor.DARK_GREEN + "[Input]";
-                            sender.sendMessage(prefix + " " + ChatColor.WHITE + language.formatCode(currentLine));
+                            user.sendMessage(prefix + " " + ChatColor.WHITE + language.formatCode(currentLine));
                             break;
                     }
-                    shellInstances.put(ScriptHandler.getInternalName(sender), localShellInstance);
+                    shellInstances.put(ScriptHandler.getInternalName(user), localShellInstance);
                 } catch (Throwable e) {
-                    Util.reportException(sender, e);
+                    Util.reportException(user, e);
                 }
             }
         };
@@ -453,17 +445,17 @@ public class ScriptHandler {
     }
 
     public static void setVariables(ScriptLanguage language, Plugin plugin,
-                                    CommandSender sender, ShellInstance shellInstance) {
-        SinkUser user = SinkLibrary.getInstance().getUser(sender);
+                                    SinkUser user, ShellInstance shellInstance) {
         language.setVariable(shellInstance, "me", user);
         language.setVariable(shellInstance, "plugin", plugin);
         language.setVariable(shellInstance, "server", Bukkit.getServer());
         language.setVariable(shellInstance, "players", BukkitUtil.getOnlinePlayers());
-        language.setVariable(shellInstance, "sender", sender);
+        language.setVariable(shellInstance, "base", user.getBase());
+        language.setVariable(shellInstance, "sender", user.getSender());
         language.setVariable(shellInstance, "language", language);
 
-        if (sender instanceof Player) {
-            Player player = (Player) sender;
+        if (user instanceof IngameUser) {
+            Player player = ((IngameUser) user).getPlayer();
             BlockIterator iterator = new BlockIterator(player);
             language.setVariable(shellInstance, "player", player);
             language.setVariable(shellInstance, "at", iterator.next());
@@ -473,12 +465,12 @@ public class ScriptHandler {
         }
     }
 
-    private static void setLanguage(CommandSender sender, ScriptLanguage lang) {
-        languageInstances.put(ScriptHandler.getInternalName(sender), lang);
+    private static void setLanguage(SinkUser user, ScriptLanguage lang) {
+        languageInstances.put(ScriptHandler.getInternalName(user), lang);
     }
 
-    private static ScriptLanguage getLanguage(CommandSender sender) {
-        return languageInstances.get(ScriptHandler.getInternalName(sender));
+    private static ScriptLanguage getLanguage(SinkUser user) {
+        return languageInstances.get(ScriptHandler.getInternalName(user));
     }
 
     public static HashMap<String, ShellInstance> getShellInstances() {

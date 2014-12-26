@@ -17,21 +17,17 @@
 
 package de.static_interface.sinkscripts.util;
 
-import de.static_interface.sinklibrary.SinkLibrary;
-import de.static_interface.sinkscripts.SinkScripts;
-import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguage;
-import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
+import de.static_interface.sinklibrary.*;
+import de.static_interface.sinklibrary.api.user.*;
+import de.static_interface.sinkscripts.*;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.*;
+import org.bukkit.*;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.logging.Level;
+import java.io.*;
+import java.util.logging.*;
 
-import javax.annotation.Nullable;
-import javax.script.ScriptException;
+import javax.annotation.*;
+import javax.script.*;
 
 public class Util {
 
@@ -50,12 +46,12 @@ public class Util {
         return System.getProperty("line.separator");
     }
 
-    public static void reportException(CommandSender sender, Throwable e) {
+    public static void reportException(SinkUser user, Throwable e) {
         if (e == null) {
             return;
         }
 
-        SinkScripts.getInstance().getLogger().log(Level.WARNING, "Exception caused by " + sender.getName() + ": ");
+        SinkScripts.getInstance().getLogger().log(Level.WARNING, "Exception caused by " + user.getName() + ": ");
         e.printStackTrace();
 
         //bad :(
@@ -92,7 +88,7 @@ public class Util {
                 e1.printStackTrace();
             }
 
-            sender.sendMessage(ChatColor.RED + (first ? "" : "Caused by: ") + e.getClass().getCanonicalName() + (msg == null ? "" : ": " + msg) + source);
+            user.sendMessage(ChatColor.RED + (first ? "" : "Caused by: ") + e.getClass().getCanonicalName() + (msg == null ? "" : ": " + msg) + source);
             if(first) first = false;
             e = e.getCause();
             msg = "";
