@@ -45,7 +45,7 @@ public class SetLanguageCommand extends ScriptCommandBase {
             }
         }
         if (newLanguage == null) {
-            context.getUser().sendMessage("Unknown language: " + args[0]);
+            context.getUser().sendMessage(ChatColor.DARK_RED + "Unknown language: " + args[0]);
             return true;
         }
         if (context.getUser() instanceof ConsoleUser) {

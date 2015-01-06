@@ -18,6 +18,7 @@
 package de.static_interface.sinkscripts.scriptengine.scriptcontext;
 
 import de.static_interface.sinklibrary.api.user.*;
+import de.static_interface.sinklibrary.util.Debug;
 import de.static_interface.sinkscripts.scriptengine.*;
 import de.static_interface.sinkscripts.scriptengine.scriptlanguage.*;
 import org.bukkit.plugin.*;
@@ -49,7 +50,10 @@ public abstract class ScriptContext {
     }
 
     public void setCode(@Nullable String code) {
-        System.out.println("Set Code: " + code);
+        if(code == null || code.replaceAll("\\Q" + System.lineSeparator() + "\\E", "").equals("null")) {
+            code = "";
+        }
+        Debug.log("Set Code: " + code);
         this.code = code;
     }
 

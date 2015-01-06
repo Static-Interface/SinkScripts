@@ -89,6 +89,7 @@ public class ScriptHandler {
 
         if(command == null) {
             context.getUser().sendMessage(ChatColor.RED + "Unknown command: " + cmd);
+            return;
         }
 
         try {
@@ -137,88 +138,8 @@ public class ScriptHandler {
             @SuppressWarnings("ConstantConditions")
             public void run() {
                 try {
-                    String currentLine = "";
-
-                    if(line.toCharArray()[0] != '.') {
-                        currentLine = line;
-                    }
-
-                    String[] args = line.split(" ");
-
-                    //check if code was set before, to prevent NPE's
-                    boolean codeSet = false;
-                    boolean isReplace = false;
-                    if (StringUtil.isEmptyOrNull(localShellInstance.getCode())) {
-                        if (line.toCharArray()[0] != '.') { //command, don't add to code
-                            code = currentLine;
-                            codeSet = true;
-                        }
-                    }
-
-                    if(code == null ) {
-                        code = localShellInstance.getCode();
-                    }
-
-                    // remove last line and add the code after ^
-                    if(currentLine.trim().startsWith("^")) {
-                        List<String> lines = new ArrayList<>();
-                        lines.addAll(Arrays.asList(code.split(nl)));
-
-                        // remove last line
-                        if(lines.size() > 0) lines.remove(lines.size()-1);
-
-                        code = "";
-
-                        // if there is more than just a "^", add everything after that
-                        for(String s : lines) {
-                            code += nl + s;
-                        }
-
-                        //bad :(
-                        while(code.startsWith(nl)) {
-                            code = code.replaceFirst(nl, "");
-                        }
-
-                        if(!currentLine.trim().equals("^"))  {
-                            currentLine = currentLine.replaceFirst("\\^", "");
-                            isReplace = true;
-                        } else {
-                            user.sendMessage(ChatColor.GOLD + "Removed last line");
-                            localShellInstance.setCode(code);
-                            return;
-                        }
-                    }
-
-                    //dont use new line if line starts with "<" (e.g. if the line is too long or you want to add something to it)
-                    boolean useNl = !currentLine.startsWith("<");
-                    if (!useNl) {
-                        currentLine = currentLine.replaceFirst("<", "");
-                        nl = "";
-                    }
-
-                    boolean isImport = false;
-
-                    if (language != null && language.getImportIdentifier() != null) {
-                        for (String s : language.getImportIdentifier()) {
-                            if (currentLine.startsWith(s)) {
-                                code = currentLine + nl + code;
-                                isImport = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!isImport && !codeSet) {
-                        code = code + nl + currentLine;
-                    }
-                    localShellInstance.setCode(code);
-
-                    /* Todo:
-                     * add permissions for commands, e.g. sinkscripts.use.help, sinkscripts.use.executefile etc...
-                     */
-
-                    if(line.startsWith(".")) {
-
+                    if(line.toCharArray().length > 0 && line.toCharArray()[0] == '.') {
+                        String[] args = line.split(" ");
                         String cmd = args[0].replaceFirst("\\Q" + "." + "\\E", "");
                         String[] cmdArgs = new String[args.length - 1];
 
@@ -227,11 +148,89 @@ public class ScriptHandler {
                         }
 
                         handleCommand(localShellInstance, cmd, cmdArgs, line, nl);
+                        return;
                     }
-                    else {
-                        String prefix = isReplace ? ChatColor.GOLD + "[Replace]" : ChatColor.DARK_GREEN + "[Input]";
-                        user.sendMessage(prefix + " " + ChatColor.WHITE + language.formatCode(currentLine));
+
+                    if(language == null) {
+                        user.sendMessage(ChatColor.RED + "Language not set! Use .setlanguage <language>");
+                        return;
                     }
+
+                    String currentLine = line;
+
+                    //check if code was set before
+                    boolean codeSet = false;
+                    boolean isReplace = false;
+
+                    if (StringUtil.isEmptyOrNull(localShellInstance.getCode())) { // code not set
+                            code = currentLine;
+                            codeSet = true;
+                    } else {
+                        code = localShellInstance.getCode();
+                    }
+
+                    boolean useNl = !currentLine.startsWith("<");
+                    if (!useNl) {
+                        currentLine = currentLine.replaceFirst("<", "");
+                        nl = "";
+                    }
+
+                    // remove last line and add the code after ^
+                    if(line.length() > 0 && line.toCharArray()[0] == '^') {
+                        List<String> lines = new ArrayList<>();
+                        lines.addAll(Arrays.asList(code.split(System.lineSeparator())));
+
+                        // remove last line
+                        if(lines.size() > 0) lines.remove(lines.size()-1);
+
+                        code = "";
+                        for (String s : lines) {
+                            code += s + System.lineSeparator();
+                        }
+
+                        // if there is more than just a "^", add everything after that
+                        if(line.length() > 1) {
+                            code +=  line.replaceFirst("\\Q^\\E", "") + nl;
+                        }
+
+                        //bad :(
+                        //while(code.startsWith(System.lineSeparator())) {
+                        //    code = code.replaceFirst("\\Q" + System.lineSeparator() + "\\E", "") + nl;
+                        //}
+
+                        if(!currentLine.trim().equals("^"))  {
+                            currentLine = currentLine.replaceFirst("\\Q^\\E", "");
+                            isReplace = true;
+                            codeSet = true;
+                        } else {
+                            user.sendMessage(ChatColor.GOLD + "Removed last line");
+                            localShellInstance.setCode(code);
+                            return;
+                        }
+                    }
+
+                    boolean isImport = false;
+
+                    if (language != null && language.getImportIdentifier() != null && !codeSet) {
+                        for (String s : language.getImportIdentifier()) {
+                            if (currentLine.startsWith(s)) {
+                                code = currentLine + nl + code + nl;
+                                isImport = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    //dont use new line if line starts with "<" (e.g. if the line is too long or you want to add something to it)
+
+
+                    if (!isImport && !codeSet) {
+                        code = code + nl + currentLine + nl;
+                    }
+                    localShellInstance.setCode(code);
+
+                    String prefix = isReplace ? ChatColor.GOLD + "[Replace]" : ChatColor.DARK_GREEN + "[Input]";
+                    user.sendMessage(prefix + " " + ChatColor.WHITE + language.formatCode(currentLine));
                     //shellInstances.put(ScriptHandler.userToKey(user), localShellInstance);
                 } catch (Throwable e) {
                     Util.reportException(user, e);

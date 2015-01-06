@@ -17,6 +17,7 @@
 
 package de.static_interface.sinkscripts.scriptengine.scriptcommand;
 
+import de.static_interface.sinklibrary.util.StringUtil;
 import de.static_interface.sinkscripts.scriptengine.scriptcontext.*;
 import org.apache.commons.cli.*;
 import org.bukkit.*;
@@ -36,7 +37,7 @@ public class HistoryCommand extends ScriptCommandBase {
         context.getUser().sendMessage(ChatColor.GOLD + "-------|History|-------");
         if (context.getCode() != null) {
             for (String s : context.getCode().split(nl)) {
-                if(s == null) continue;
+                if(StringUtil.isEmptyOrNull(s)) continue;
                 context.getUser().sendMessage(ChatColor.WHITE + context.getScriptLanguage().formatCode(s));
             }
         }
