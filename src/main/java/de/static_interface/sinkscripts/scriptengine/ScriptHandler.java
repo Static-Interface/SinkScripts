@@ -22,22 +22,22 @@ import de.static_interface.sinklibrary.user.*;
 import de.static_interface.sinklibrary.util.*;
 import de.static_interface.sinklibrary.util.StringUtil;
 import de.static_interface.sinkscripts.*;
+import de.static_interface.sinkscripts.scriptengine.scriptcommand.*;
 import de.static_interface.sinkscripts.scriptengine.scriptlanguage.*;
-import de.static_interface.sinkscripts.scriptengine.shellinstance.*;
-import de.static_interface.sinkscripts.scriptengine.shellinstance.impl.*;
+import de.static_interface.sinkscripts.scriptengine.scriptcontext.*;
+import de.static_interface.sinkscripts.scriptengine.scriptcontext.impl.*;
 import de.static_interface.sinkscripts.util.*;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.plugin.*;
 import org.bukkit.util.*;
 
-import java.io.*;
 import java.util.*;
 import java.util.logging.*;
 
 public class ScriptHandler {
 
-    protected static HashMap<String, ShellInstance> shellInstances = new HashMap<>(); // PlayerName - Shell Instance
+    protected static HashMap<String, ScriptContext> shellInstances = new HashMap<>(); // PlayerName - Shell Instance
     private static ArrayList<String> enabledUsers = new ArrayList<>();
     private static HashMap<String, ScriptLanguage> scriptLanguages = new HashMap<>();
     private static HashMap<String, ScriptLanguage> languageInstances = new HashMap<>();
@@ -60,18 +60,18 @@ public class ScriptHandler {
     }
 
     public static boolean isEnabled(SinkUser user) {
-        return enabledUsers.contains(getInternalName(user));
+        return enabledUsers.contains(userToKey(user));
     }
 
     public static void setEnabled(SinkUser user, boolean enabled) {
         if (enabled) {
-            enabledUsers.add(getInternalName(user));
+            enabledUsers.add(userToKey(user));
         } else {
-            enabledUsers.remove(getInternalName(user));
+            enabledUsers.remove(userToKey(user));
         }
     }
 
-    public static String getInternalName(SinkUser user) {
+    public static String userToKey(SinkUser user) {
         String suffix = user.getProvider().getTabCompleterSuffix();
         if(suffix == null) suffix = "";
         return user.getName() + suffix;
@@ -82,57 +82,58 @@ public class ScriptHandler {
         scriptLanguage.preInit();
     }
 
+
+
+    public static void handleCommand(ScriptContext context, String cmd, String[] args, String label, String nl) {
+        ScriptCommandBase command = ScriptCommandBase.get(cmd);
+
+        if(command == null) {
+            context.getUser().sendMessage(ChatColor.RED + "Unknown command: " + cmd);
+        }
+
+        try {
+            command.onPreExecute(context.getUser(), args, label, nl);
+        } catch (Exception e) {
+            Util.reportException(context.getUser(), e);
+        }
+    }
+
     public static void handleLine(final SinkUser user, final String line, final Plugin plugin) {
-        ShellInstance shellInstance;
-        final List<String> availableParamters = new ArrayList<>();
-        availableParamters.add("--async");
-        availableParamters.add("--skipoutput");
-        availableParamters.add("--clear");
-        availableParamters.add("--noimports");
+        ScriptContext context;
 
-        boolean isExecute = line.startsWith(".execute");
-        boolean async = isExecute && line.contains(" --async");
-        final boolean skipOutput = isExecute && (line.contains(" --skipoutput"));
-        final boolean clear = isExecute && (line.contains(" --clear"));
-        final boolean noImports = isExecute && (line.contains(" --noimports"));
-
-        boolean isSave = line.startsWith(".save");
-        final boolean isAutostartSave = isSave && line.contains(" --autostart");
+        boolean async = line.contains(" --async");
 
         final ScriptLanguage language = getLanguage(user);
-        if (language == null && (!line.startsWith(".setlanguage") && !line.startsWith(".execute") && !line.startsWith(".help") && !line
-                .startsWith(".listlanguages"))) {
-            user.sendMessage("Language not set! Use .setlanguage <language>");
-            return;
-        }
+
         if (user instanceof ConsoleUser) {
-            shellInstance = language.getConsoleShellInstance();
+            context = language.getConsoleContext();
         } else {
-            shellInstance = shellInstances.get(ScriptHandler.getInternalName(user));
+            context = shellInstances.get(ScriptHandler.userToKey(user));
         }
-        if (shellInstance == null) {
+        if (context == null) {
             SinkScripts.getInstance().getLogger().log(Level.INFO, "Initializing ShellInstance for " + user.getName());
 
             if (language == null) {
-                shellInstance = new DummyShellInstance(user, null); // Used for .setLanguage
+                context = new DummyContext(user, plugin); // Used for .setLanguage
             } else {
-                shellInstance = language.createNewShellInstance(user);
+                context = language.createNewShellInstance(user);
             }
 
-            shellInstances.put(ScriptHandler.getInternalName(user), shellInstance);
+            shellInstances.put(ScriptHandler.userToKey(user), context);
         }
 
         // Still null?!
-        if (shellInstance == null) {
+        if (context == null) {
             throw new IllegalStateException("Couldn't create shellInstance!");
         }
 
-        final ShellInstance tmpInstance = shellInstance;
+        final ScriptContext tmpInstance = context;
 
         Runnable runnable = new Runnable() {
             String nl = Util.getNewLine();
             String code = null;
-            ShellInstance localShellInstance = tmpInstance;
+            ScriptContext localShellInstance = tmpInstance;
+
             @SuppressWarnings("ConstantConditions")
             public void run() {
                 try {
@@ -143,12 +144,11 @@ public class ScriptHandler {
                     }
 
                     String[] args = line.split(" ");
-                    String mode = args[0].toLowerCase();
 
                     //check if code was set before, to prevent NPE's
                     boolean codeSet = false;
                     boolean isReplace = false;
-                    if (StringUtil.isStringEmptyOrNull(localShellInstance.getCode())) {
+                    if (StringUtil.isEmptyOrNull(localShellInstance.getCode())) {
                         if (line.toCharArray()[0] != '.') { //command, don't add to code
                             code = currentLine;
                             codeSet = true;
@@ -216,221 +216,23 @@ public class ScriptHandler {
                     /* Todo:
                      * add permissions for commands, e.g. sinkscripts.use.help, sinkscripts.use.executefile etc...
                      */
-                    switch (mode) {
-                        case ".help":
-                            user.sendMessage(ChatColor.GREEN + "[Help] " + ChatColor.GRAY + "Available Commands: .help, .load <file>, " +
-                                               ".save <file>, .execute [file], .setvariable <name> <value>, .history, .clear, .setlanguage <language>");
-                            break;
 
-                        case ".setl":
-                        case ".setlanguage":
-                            ScriptLanguage newLanguage = null;
-                            for (ScriptLanguage lang : ScriptHandler.getScriptLanguages()) {
-                                if (lang.getName().equals(args[1]) || lang.getFileExtension().equals(args[1])) {
-                                    newLanguage = lang;
-                                    break;
-                                }
-                            }
-                            if (newLanguage == null) {
-                                user.sendMessage("Unknown language: " + args[1]);
-                                break;
-                            }
-                            if (user instanceof ConsoleUser) {
-                                localShellInstance = newLanguage.getConsoleShellInstance();
-                            } else {
-                                localShellInstance = newLanguage.createNewShellInstance(user);
-                            }
-                            shellInstances.put(ScriptHandler.getInternalName(user), localShellInstance);
-                            setLanguage(user, newLanguage);
-                            user.sendMessage(ChatColor.GOLD + "Language has been set to: " + ChatColor.RED + newLanguage.getName());
-                            break;
+                    if(line.startsWith(".")) {
 
-                        case ".clear":
-                            localShellInstance.setCode("");
-                            user.sendMessage(ChatColor.DARK_RED + "History cleared");
-                            break;
+                        String cmd = args[0].replaceFirst("\\Q" + "." + "\\E", "");
+                        String[] cmdArgs = new String[args.length - 1];
 
-                        case ".listlanguages":
-                            String languages = "";
-
-                            for (ScriptLanguage language : ScriptHandler.getScriptLanguages()) {
-                                if (languages.equals("")) {
-                                    languages = language.getName();
-                                    continue;
-                                }
-
-                                languages += ", " + language.getName();
-                            }
-
-                            user.sendMessage(ChatColor.GOLD + "Available script languages: " + ChatColor.RESET + languages);
-                            break;
-
-                        case ".sv":
-                        case ".setvariable":
-                            //if ( args.length < 1 || !currentLine.contains("=") )
-                            //{
-                            //    sender.sendMessage(ChatColor.DARK_RED + "Usage: .setvariable name=value");
-                            //    break;
-                            //}
-                            try {
-                                String[] commandArgs = line.split("=");
-                                String variableName = commandArgs[0].split(" ")[1];
-                                String[] rawValue = new String[commandArgs.length - 1];
-                                for (int i = 0; i < rawValue.length; i++) {
-                                    rawValue[i] = commandArgs[i - 1];
-                                }
-
-                                Object value = language.getValue(rawValue);
-                                language.setVariable(localShellInstance, variableName, value);
-                                user.sendMessage(
-                                        ChatColor.BLUE + variableName + ChatColor.RESET + " has been successfully set to " + ChatColor.RED + value
-                                        + ChatColor.RESET + " (" + ChatColor.BLUE + value.getClass().getSimpleName() + ")");
-                            } catch (Exception e) {
-                                Util.reportException(user, e);
-                            }
-                            break;
-
-                        case ".load": {
-                            if (args.length < 2) {
-                                user.sendMessage(ChatColor.DARK_RED + "Too few arguments! .load <File>");
-                                break;
-                            }
-                            String scriptName = args[1];
-
-                            try {
-                                localShellInstance.setCode(Util.loadFile(scriptName, language) + code);
-                            } catch (FileNotFoundException ignored) {
-                                user.sendMessage(ChatColor.DARK_RED + "File doesn't exists!");
-                                break;
-                            } catch (Exception e) {
-                                Util.reportException(user, e);
-                                break;
-                            }
-                            user.sendMessage(ChatColor.DARK_GREEN + "File loaded");
-                            break;
+                        for (int i = 0; i < cmdArgs.length; i++) {
+                            cmdArgs[i] = args[i + 1];
                         }
 
-                        case ".save": {
-                            if (args.length < 2) {
-                                user.sendMessage(ChatColor.DARK_RED + "Too few arguments! .save <File>");
-                                break;
-                            }
-                            String scriptName = args[1];
-                            File scriptFile;
-
-                            if (isAutostartSave) {
-                                scriptFile = new File(language.AUTOSTART_DIRECTORY, scriptName + "." + language.getFileExtension());
-                            } else {
-                                scriptFile = new File(language.SCRIPTLANGUAGE_DIRECTORY, scriptName + "." + language.getFileExtension());
-                            }
-
-                            if (scriptFile.exists()) {
-                                if (!scriptFile.delete()) {
-                                    throw new RuntimeException("Couldn't override " + scriptFile + " (File.delete() returned false)!");
-                                }
-                                break;
-                            }
-                            PrintWriter writer;
-                            try {
-                                writer = new PrintWriter(scriptFile, "UTF-8");
-                            } catch (Exception e) {
-                                Util.reportException(user, e);
-                                break;
-                            }
-                            writer.write(code);
-                            writer.close();
-                            user.sendMessage(ChatColor.DARK_GREEN + "Code saved!");
-                            break;
-                        }
-                        case ".exec":
-                        case ".execute":
-
-                            if (language != null) {
-                                setVariables(language, plugin, user, localShellInstance);
-                            }
-
-                            ScriptLanguage contextLanguage = language;
-                            try {
-                                boolean isParameter = false;
-                                String scriptName = null;
-                                if (args.length > 1) {
-                                    for (String s : availableParamters) {
-                                        if (s.equals(args[1])) {
-                                            isParameter = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                                String result;
-
-                                if(!isParameter && args.length > 1) {
-                                    scriptName = args[1];
-                                    String tmp[] = scriptName.split("\\.");
-
-                                    if (tmp.length < 1 && language == null) {
-                                        throw new IllegalStateException("Couldn't find extension for language file: " + scriptName);
-                                    }
-
-                                    String extension = tmp[tmp.length - 1];
-                                    ScriptLanguage
-                                            tmpLanguage =
-                                            ScriptHandler.getScriptLanguageByExtension(extension); // get language by extension
-                                    if (tmpLanguage == null && language == null) {
-                                        user.sendMessage(ChatColor.DARK_RED
-                                                           + "Language not set and/or invalid file extension! Use .execute <file> or .setlanguage <language>");
-                                    }
-
-                                    if (tmpLanguage != null) {
-                                        contextLanguage = tmpLanguage;
-                                        if (localShellInstance == null) {
-                                            localShellInstance = contextLanguage.createNewShellInstance(user);
-                                            shellInstances.put(getInternalName(user), localShellInstance);
-                                        }
-                                    }
-
-                                    scriptName = StringUtil.formatArrayToString(tmp, ".", 0, tmp.length - 1); // remove extension
-                                }
-
-                                if (args.length > 1 && !isParameter) {
-                                    Debug.log(localShellInstance);
-                                    result =
-                                            String.valueOf(contextLanguage
-                                                                   .run(localShellInstance, Util.loadFile(scriptName, contextLanguage), noImports,
-                                                                        clear));
-                                } else {
-                                    result = String.valueOf(contextLanguage.run(localShellInstance, code, noImports, clear));
-                                }
-
-                                if (!skipOutput) {
-                                    user.sendMessage(ChatColor.AQUA + "Output: " + ChatColor.GREEN + contextLanguage.formatCode(result));
-                                }
-                            } catch (Throwable thr) {
-                                Util.reportException(user, thr);
-                            }
-                            break;
-
-                        case ".showhistory":
-                        case ".history":
-                            user.sendMessage(ChatColor.GOLD + "-------|History|-------");
-                            if (localShellInstance.getCode() != null) {
-                                for (String s : localShellInstance.getCode().split(nl)) {
-                                    if(s == null) continue;
-                                    user.sendMessage(ChatColor.WHITE + language.formatCode(s));
-                                }
-                            }
-                            user.sendMessage(ChatColor.GOLD + "-----------------------");
-                        break;
-
-                        default:
-                            if (mode.startsWith(".")) {
-                                user.sendMessage('"' + mode + "\" is not a valid command");
-                                break;
-                            }
-                            String prefix = isReplace ? ChatColor.GOLD + "[Replace]" : ChatColor.DARK_GREEN + "[Input]";
-                            user.sendMessage(prefix + " " + ChatColor.WHITE + language.formatCode(currentLine));
-                            break;
+                        handleCommand(localShellInstance, cmd, cmdArgs, line, nl);
                     }
-                    shellInstances.put(ScriptHandler.getInternalName(user), localShellInstance);
+                    else {
+                        String prefix = isReplace ? ChatColor.GOLD + "[Replace]" : ChatColor.DARK_GREEN + "[Input]";
+                        user.sendMessage(prefix + " " + ChatColor.WHITE + language.formatCode(currentLine));
+                    }
+                    //shellInstances.put(ScriptHandler.userToKey(user), localShellInstance);
                 } catch (Throwable e) {
                     Util.reportException(user, e);
                 }
@@ -444,36 +246,38 @@ public class ScriptHandler {
         }
     }
 
-    public static void setVariables(ScriptLanguage language, Plugin plugin,
-                                    SinkUser user, ShellInstance shellInstance) {
-        language.setVariable(shellInstance, "me", user);
-        language.setVariable(shellInstance, "plugin", plugin);
-        language.setVariable(shellInstance, "server", Bukkit.getServer());
-        language.setVariable(shellInstance, "players", BukkitUtil.getOnlinePlayers());
-        language.setVariable(shellInstance, "base", user.getBase());
-        language.setVariable(shellInstance, "sender", user.getSender());
-        language.setVariable(shellInstance, "language", language);
+    public static void setVariables(ScriptContext context) {
+        SinkUser user = context.getUser();
+        ScriptLanguage language = context.getScriptLanguage();
+
+        language.setVariable(context, "me", user);
+        language.setVariable(context, "plugin", context.getPlugin());
+        language.setVariable(context, "server", Bukkit.getServer());
+        language.setVariable(context, "players", BukkitUtil.getOnlinePlayers());
+        language.setVariable(context, "base", user.getBase());
+        language.setVariable(context, "sender", user.getSender());
+        language.setVariable(context, "language", language);
 
         if (user instanceof IngameUser) {
             Player player = ((IngameUser) user).getPlayer();
             BlockIterator iterator = new BlockIterator(player);
-            language.setVariable(shellInstance, "player", player);
-            language.setVariable(shellInstance, "at", iterator.next());
-            language.setVariable(shellInstance, "x", player.getLocation().getX());
-            language.setVariable(shellInstance, "y", player.getLocation().getY());
-            language.setVariable(shellInstance, "z", player.getLocation().getZ());
+            language.setVariable(context, "player", player);
+            language.setVariable(context, "at", iterator.next());
+            language.setVariable(context, "x", player.getLocation().getX());
+            language.setVariable(context, "y", player.getLocation().getY());
+            language.setVariable(context, "z", player.getLocation().getZ());
         }
     }
 
-    private static void setLanguage(SinkUser user, ScriptLanguage lang) {
-        languageInstances.put(ScriptHandler.getInternalName(user), lang);
+    public static void setLanguage(SinkUser user, ScriptLanguage lang) {
+        languageInstances.put(ScriptHandler.userToKey(user), lang);
     }
 
-    private static ScriptLanguage getLanguage(SinkUser user) {
-        return languageInstances.get(ScriptHandler.getInternalName(user));
+    public static ScriptLanguage getLanguage(SinkUser user) {
+        return languageInstances.get(ScriptHandler.userToKey(user));
     }
 
-    public static HashMap<String, ShellInstance> getShellInstances() {
+    public static HashMap<String, ScriptContext> getScriptContexts() {
         return shellInstances;
     }
 }

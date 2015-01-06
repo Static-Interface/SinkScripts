@@ -22,7 +22,7 @@ import static de.static_interface.sinkscripts.SinkScripts.*;
 import de.static_interface.sinklibrary.*;
 import de.static_interface.sinklibrary.api.user.*;
 import de.static_interface.sinkscripts.scriptengine.*;
-import de.static_interface.sinkscripts.scriptengine.shellinstance.*;
+import de.static_interface.sinkscripts.scriptengine.scriptcontext.*;
 import de.static_interface.sinkscripts.util.*;
 import org.bukkit.plugin.*;
 
@@ -38,7 +38,7 @@ public abstract class ScriptLanguage {
     protected String fileExtension;
     protected Plugin plugin;
     protected String name;
-    private ShellInstance consoleShellInstance;
+    private ScriptContext consoleContext;
 
     public ScriptLanguage(Plugin plugin, String name, String fileExtension) {
         this.fileExtension = fileExtension.toLowerCase();
@@ -64,32 +64,36 @@ public abstract class ScriptLanguage {
 
     public abstract String formatCode(String code);
 
-    public Object run(ShellInstance instance, String code, boolean skipImports, boolean clear) {
-        SinkLibrary.getInstance().getCustomLogger().logToFile(Level.INFO, instance.getUser().getName() + " executed script: " + code);
+    public Object run(ScriptContext context, String code, boolean skipImports, boolean clear) {
+        SinkLibrary.getInstance().getCustomLogger().logToFile(Level.INFO, context.getUser().getName() + " executed script: " + code);
 
         if (!skipImports) {
             code = onUpdateImports(code);
         }
 
+
+
+        Object result = eval(context, code);
+
         if (clear) {
-            instance.setCode("");
+            context.setCode("");
         }
 
-        return eval(instance, code);
+        return result;
     }
 
-    protected Object run(ShellInstance instance, File file) {
-        SinkLibrary.getInstance().getCustomLogger().logToFile(Level.INFO, instance.getUser().getName() + " executed script file: " + file);
+    protected Object run(ScriptContext context, File file) {
+        SinkLibrary.getInstance().getCustomLogger().logToFile(Level.INFO, context.getUser().getName() + " executed script file: " + file);
 
-        setVariable(instance, "scriptfile", file);
+        setVariable(context, "scriptfile", file);
         try {
-            return eval(instance, Util.loadFile(file));
+            return eval(context, Util.loadFile(file));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public abstract Object eval(ShellInstance instance, String code);
+    public abstract Object eval(ScriptContext context, String code);
 
     /**
      * @param commandArgs String[] you want to convert to value
@@ -164,9 +168,9 @@ public abstract class ScriptLanguage {
 
     protected abstract String getDefaultImports();
 
-    public abstract ShellInstance createNewShellInstance(SinkUser user);
+    public abstract ScriptContext createNewShellInstance(SinkUser user);
 
-    public abstract void setVariable(ShellInstance instance, String name, Object value);
+    public abstract void setVariable(ScriptContext context, String name, Object value);
 
     public abstract List<String> getImportIdentifier();
 
@@ -187,9 +191,9 @@ public abstract class ScriptLanguage {
                     continue;
                 }
 
-                ScriptHandler.setVariables(this, plugin, getConsoleShellInstance().getUser(), getConsoleShellInstance());
+                ScriptHandler.setVariables(getConsoleContext());
 
-                run(getConsoleShellInstance(), file);
+                run(getConsoleContext(), file);
             }
         }
     }
@@ -210,11 +214,11 @@ public abstract class ScriptLanguage {
     }
 
 
-    public ShellInstance getConsoleShellInstance() {
-        if (consoleShellInstance == null) {
-            consoleShellInstance = createNewShellInstance(SinkLibrary.getInstance().getConsoleUser());
+    public ScriptContext getConsoleContext() {
+        if (consoleContext == null) {
+            consoleContext = createNewShellInstance(SinkLibrary.getInstance().getConsoleUser());
         }
-        return consoleShellInstance;
+        return consoleContext;
     }
 
     public final void init() {

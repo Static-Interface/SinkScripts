@@ -21,8 +21,8 @@ import de.static_interface.sinklibrary.*;
 import de.static_interface.sinklibrary.api.user.*;
 import de.static_interface.sinkscripts.*;
 import de.static_interface.sinkscripts.scriptengine.scriptlanguage.*;
-import de.static_interface.sinkscripts.scriptengine.shellinstance.*;
-import de.static_interface.sinkscripts.scriptengine.shellinstance.impl.*;
+import de.static_interface.sinkscripts.scriptengine.scriptcontext.ScriptContext;
+import de.static_interface.sinkscripts.scriptengine.scriptcontext.impl.*;
 import de.static_interface.sinkscripts.util.*;
 import org.bukkit.*;
 import org.bukkit.plugin.*;
@@ -39,27 +39,28 @@ public abstract class ScriptEngineScript extends ScriptLanguage {
     }
 
     @Override
-    public Object eval(ShellInstance instance, String code) {
+    public Object eval(ScriptContext context, String code) {
         try {
-            return ((ScriptEngine) instance.getExecutor()).eval(code);
+            return ((ScriptEngine) context.getExecutor()).eval(code);
         } catch (ScriptException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public ShellInstance createNewShellInstance(SinkUser user) {
+    public ScriptContext createNewShellInstance(SinkUser user) {
         ScriptEngine e = new ScriptEngineManager
                 (new JoinClassLoader(SinkLibrary.getInstance().getClazzLoader(), Bukkit.class.getClassLoader(),
                                      ((SinkScripts)plugin).getClazzLoader())).getEngineByName(engineName);
         if (e == null) {
             throw new NullPointerException("Couldn't find ScriptEngine: " + engineName + ". Did you forgot to add a library?");
         }
-        return new ScriptEngineShellInstance(user, e);
+        return new ScriptEngineContext(user, e, this, plugin);
     }
 
     @Override
-    public void setVariable(ShellInstance instance, String name, Object value) {
-        ((ScriptEngine) instance.getExecutor()).put(name, value);
+    public void setVariable(ScriptContext context, String name, Object value) {
+        ScriptEngine engine = (ScriptEngine) context.getExecutor();
+        engine.put(name, value);
     }
 }

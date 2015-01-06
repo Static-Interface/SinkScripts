@@ -17,20 +17,17 @@
 
 package de.static_interface.sinkscripts;
 
-import de.static_interface.sinklibrary.SinkLibrary;
+import de.static_interface.sinklibrary.*;
 import de.static_interface.sinkscripts.command.ScriptCommand;
-import de.static_interface.sinkscripts.scriptengine.ScriptHandler;
-import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguage;
-import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.GroovyScript;
-import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.JavaScript;
-import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.LuaScript;
-import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.PythonScript;
-import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.RubyScript;
-import org.bukkit.Bukkit;
-import org.bukkit.plugin.java.JavaPlugin;
+import de.static_interface.sinkscripts.scriptengine.*;
+import de.static_interface.sinkscripts.scriptengine.scriptcommand.*;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.*;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.*;
+import org.bukkit.*;
+import org.bukkit.plugin.java.*;
 
-import java.io.File;
-import java.util.logging.Level;
+import java.io.*;
+import java.util.logging.*;
 
 public class SinkScripts extends JavaPlugin {
 
@@ -62,8 +59,20 @@ public class SinkScripts extends JavaPlugin {
         }
 
         registerListeners();
-
+        initScriptCommands();
         loadAutoStart();
+    }
+
+    private void initScriptCommands() {
+        ScriptCommandBase.registerCommand(new ClearCommand());
+        ScriptCommandBase.registerCommand(new ExecuteCommand());
+        ScriptCommandBase.registerCommand(new HelpCommand());
+        ScriptCommandBase.registerCommand(new HistoryCommand());
+        ScriptCommandBase.registerCommand(new ListLanguageCommand());
+        ScriptCommandBase.registerCommand(new LoadCommand());
+        ScriptCommandBase.registerCommand(new SaveCommand());
+        ScriptCommandBase.registerCommand(new SetLanguageCommand());
+        ScriptCommandBase.registerCommand(new SetVariableCommand());
     }
 
     @Override

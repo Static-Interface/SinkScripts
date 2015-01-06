@@ -84,10 +84,10 @@ public class ScriptChatListener implements Listener {
     public void onPlayerQuit(PlayerQuitEvent event) {
         IngameUser user = SinkLibrary.getInstance().getIngameUser(event.getPlayer());
 
-        String name = ScriptHandler.getInternalName(user);
+        String name = ScriptHandler.userToKey(user);
         ScriptHandler.setEnabled(user, false);
-        if (ScriptHandler.getShellInstances().containsKey(name)) {
-            ScriptHandler.getShellInstances().remove(name);
+        if (ScriptHandler.getScriptContexts().containsKey(name)) {
+            ScriptHandler.getScriptContexts().remove(name);
         }
     }
 }

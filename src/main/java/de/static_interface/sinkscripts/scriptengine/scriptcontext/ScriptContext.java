@@ -15,21 +15,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.static_interface.sinkscripts.scriptengine.shellinstance;
+package de.static_interface.sinkscripts.scriptengine.scriptcontext;
 
 import de.static_interface.sinklibrary.api.user.*;
+import de.static_interface.sinkscripts.scriptengine.*;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.*;
+import org.bukkit.plugin.*;
 
 import javax.annotation.*;
 
-public abstract class ShellInstance {
+public abstract class ScriptContext {
 
-    private Object executor;
+    private final Plugin plugin;
+    private final Object executor;
+    private final SinkUser user;
+    private ScriptLanguage language;
     private String code;
-    private SinkUser user;
 
-    public ShellInstance(SinkUser user, Object executor) {
+    public ScriptContext(SinkUser user, Object executor, ScriptLanguage language, Plugin plugin) {
         this.user = user;
         this.executor = executor;
+        this.language = language;
+        this.plugin = plugin;
     }
 
     public Object getExecutor() {
@@ -42,6 +49,7 @@ public abstract class ShellInstance {
     }
 
     public void setCode(@Nullable String code) {
+        System.out.println("Set Code: " + code);
         this.code = code;
     }
 
@@ -53,5 +61,18 @@ public abstract class ShellInstance {
     public String toString() {
         return getClass().getSimpleName() + "@" + Integer.toHexString(hashCode()) + " [executor=" + (executor == null ? "null" : executor.toString())
                + ", user=" + (user== null ? "null" : user.toString()) + "]";
+    }
+
+    public ScriptLanguage getScriptLanguage() {
+        return language;
+    }
+
+    public void setScriptLanguage(ScriptLanguage language) {
+        this.language = language;
+        ScriptHandler.setLanguage(getUser(), language);
+    }
+
+    public Plugin getPlugin() {
+        return plugin;
     }
 }

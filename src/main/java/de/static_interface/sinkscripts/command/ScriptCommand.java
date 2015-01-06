@@ -17,12 +17,13 @@
 
 package de.static_interface.sinkscripts.command;
 
-import de.static_interface.sinklibrary.api.command.SinkCommand;
-import de.static_interface.sinkscripts.scriptengine.ScriptHandler;
-import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
-import org.bukkit.plugin.Plugin;
+import de.static_interface.sinklibrary.*;
+import de.static_interface.sinklibrary.api.command.*;
+import de.static_interface.sinklibrary.api.user.*;
+import de.static_interface.sinkscripts.scriptengine.*;
+import org.bukkit.*;
+import org.bukkit.command.*;
+import org.bukkit.plugin.*;
 
 public class ScriptCommand extends SinkCommand {
 
@@ -33,8 +34,10 @@ public class ScriptCommand extends SinkCommand {
 
     @Override
     public boolean onExecute(CommandSender sender, String label, String[] args) {
-        if (!(sender instanceof ConsoleCommandSender) && ScriptHandler.isEnabled(sender)) {
-            ScriptHandler.setEnabled(sender, false);
+        SinkUser user = SinkLibrary.getInstance().getUser((Object)sender);
+
+        if (!(sender instanceof ConsoleCommandSender) && ScriptHandler.isEnabled(user)) {
+            ScriptHandler.setEnabled(user, false);
             sender.sendMessage(ChatColor.DARK_RED + "Disabled Interactive Scripting Console");
             return true;
         }
@@ -44,7 +47,7 @@ public class ScriptCommand extends SinkCommand {
             for (String arg : args) {
                 currentLine += arg + ' ';
             }
-            ScriptHandler.handleLine(sender, currentLine, plugin);
+            ScriptHandler.handleLine(user, currentLine, plugin);
             return true;
         }
 
@@ -52,7 +55,7 @@ public class ScriptCommand extends SinkCommand {
             return false;
         }
 
-        ScriptHandler.setEnabled(sender, true);
+        ScriptHandler.setEnabled(user, true);
         sender.sendMessage(ChatColor.DARK_GREEN + "Enabled Interactive Scripting Console");
         return true;
     }

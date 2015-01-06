@@ -15,17 +15,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.static_interface.sinkscripts.scriptengine.shellinstance.impl;
+package de.static_interface.sinkscripts.scriptengine.scriptcontext.impl;
 
 import de.static_interface.sinklibrary.api.user.*;
-import de.static_interface.sinkscripts.scriptengine.shellinstance.*;
+import de.static_interface.sinkscripts.scriptengine.scriptcontext.*;
+import org.bukkit.plugin.*;
 
-import javax.script.*;
+public class DummyContext extends ScriptContext {
 
-public class ScriptEngineShellInstance extends ShellInstance {
-
-    public ScriptEngineShellInstance(SinkUser user, ScriptEngine engine) {
-        super(user, engine);
+    public DummyContext(SinkUser user, Plugin plugin) {
+        super(user, null, null, plugin);
     }
 
 }

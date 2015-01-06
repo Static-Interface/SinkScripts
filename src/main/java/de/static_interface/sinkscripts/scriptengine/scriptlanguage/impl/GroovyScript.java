@@ -17,7 +17,7 @@
 
 package de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl;
 
-import de.static_interface.sinkscripts.scriptengine.shellinstance.ShellInstance;
+import de.static_interface.sinkscripts.scriptengine.scriptcontext.ScriptContext;
 import de.static_interface.sinkscripts.util.Util;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
@@ -190,9 +190,9 @@ public class GroovyScript extends ScriptEngineScript {
     }
 
     @Override
-    public Object eval(ShellInstance instance, String code) {
+    public Object eval(ScriptContext context, String code) {
         try {
-            return ((ScriptEngine) instance.getExecutor()).eval(code);
+            return ((ScriptEngine) context.getExecutor()).eval(code);
         } catch (ScriptException e) {
             throw new RuntimeException(e);
         }
