@@ -71,8 +71,6 @@ public abstract class ScriptLanguage {
             code = onUpdateImports(code);
         }
 
-
-
         Object result = eval(context, code);
 
         if (clear) {
@@ -87,7 +85,7 @@ public abstract class ScriptLanguage {
 
         setVariable(context, "scriptfile", file);
         try {
-            return eval(context, Util.loadFile(file));
+            return eval(context, onUpdateImports(Util.loadFile(file)));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
