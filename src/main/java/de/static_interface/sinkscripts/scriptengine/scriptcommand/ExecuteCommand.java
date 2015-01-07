@@ -127,8 +127,6 @@ public class ExecuteCommand extends ScriptCommandBase {
                     contextLanguage = tmpLanguage;
                 }
             }
-        } else {
-            context.getUser().sendMessage("Extension not found: " + scriptName);
         }
 
         if(contextLanguage == null && context.getScriptLanguage() == null ) {
