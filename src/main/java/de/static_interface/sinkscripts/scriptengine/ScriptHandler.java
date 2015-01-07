@@ -229,12 +229,13 @@ public class ScriptHandler {
         }
     }
 
-    public void setVariables(ScriptContext context) {
-        SinkUser user = context.getUser();
+    public void setDefaultVariables(ScriptContext context) {
         ScriptLanguage language = context.getScriptLanguage();
+        SinkUser user = context.getUser();
+        Plugin plugin = context.getPlugin();
 
         language.setVariable(context, "me", user);
-        language.setVariable(context, "plugin", context.getPlugin());
+        language.setVariable(context, "plugin", plugin);
         language.setVariable(context, "server", Bukkit.getServer());
         language.setVariable(context, "players", BukkitUtil.getOnlinePlayers());
         language.setVariable(context, "base", user.getBase());

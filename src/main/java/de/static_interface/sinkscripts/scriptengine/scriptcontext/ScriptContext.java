@@ -35,6 +35,17 @@ public class ScriptContext {
         this.user = user;
         this.language = language;
         this.plugin = plugin;
+        if(language != null) {
+            this.executor = language.createExecutor();
+        }
+    }
+
+    public ScriptContext(ScriptContext context) {
+        this.user = context.getUser();
+        this.language = context.getScriptLanguage();
+        this.plugin = context.getPlugin();
+        this.executor = context.getExecutor();
+        this.code = context.getCode();
     }
 
     public Object getExecutor() {

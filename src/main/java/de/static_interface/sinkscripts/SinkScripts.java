@@ -119,8 +119,10 @@ public class SinkScripts extends JavaPlugin {
     }
 
     public void loadAutoStart(ScriptContext context) {
+        ScriptContext tmpContext = new ScriptContext(context);
         for (ScriptLanguage language : ScriptHandler.getInstance().getScriptLanguages()) {
-            language.onAutoStart(context);
+            tmpContext.setScriptLanguage(language);
+            language.onAutoStart(tmpContext);
         }
     }
 

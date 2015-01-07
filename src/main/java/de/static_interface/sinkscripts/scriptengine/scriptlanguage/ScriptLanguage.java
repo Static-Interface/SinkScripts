@@ -201,7 +201,8 @@ public abstract class ScriptLanguage<T> {
 
                     context.getUser().sendMessage(
                             ChatColor.DARK_GREEN + "[AutoStart] " + ChatColor.GOLD + getName() + ChatColor.WHITE + ": " + file.getName());
-                    ScriptHandler.getInstance().setVariables(context);
+
+                    ScriptHandler.getInstance().setDefaultVariables(context);
                     run(context, file);
                 }
             } catch (Throwable thr) {

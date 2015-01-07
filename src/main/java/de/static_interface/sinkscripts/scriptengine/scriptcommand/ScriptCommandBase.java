@@ -100,7 +100,6 @@ public abstract class ScriptCommandBase {
 
     public abstract boolean languageRequired();
 
-
     public String getUsage() {
         if (options != null) {
             StringWriter writer = new StringWriter();

@@ -26,6 +26,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.bukkit.ChatColor;
 
+import java.util.Arrays;
+
 import javax.annotation.Nonnull;
 
 public class ExecuteCommand extends ScriptCommandBase {
@@ -80,18 +82,17 @@ public class ExecuteCommand extends ScriptCommandBase {
         boolean clear = cmdLine.hasOption('c');
         boolean skipOutput = cmdLine.hasOption('s');
 
-        ScriptLanguage contextLanguage = context.getScriptLanguage();
         String scriptName = null;
         if(cmdLine.hasOption('f')) {
             scriptName = cmdLine.getOptionValue('f').trim();
         }
 
-        String result;
+        Object result;
 
         if(scriptName != null) {
             String tmp[] = scriptName.split("\\Q.\\E");
 
-            if (tmp.length < 1 && contextLanguage == null) {
+            if (tmp.length < 1 && context.getScriptLanguage() == null) {
                 throw new IllegalStateException("Couldn't find extension/language for script file: " + scriptName);
             }
 
@@ -99,58 +100,42 @@ public class ExecuteCommand extends ScriptCommandBase {
                 String extension = tmp[tmp.length-1].trim();
                 scriptName = StringUtil.formatArrayToString(tmp, ".", 0, tmp.length-1).trim(); // remove extension
                 ScriptLanguage
-                        tmpLanguage =
+                        extensionLanguage =
                         ScriptHandler.getInstance().getScriptLanguageByExtension(extension); // get language by extension
 
-                context.getUser().sendMessage("Extension: \"" + extension + "\"");
-
-                String languages = "{";
-                for(ScriptLanguage language : ScriptHandler.getInstance().getScriptLanguages()) {
-                    if(languages.equals("{")) {
-
-                        continue;
-                    }
-
-                    languages += " , [" + language.getName() + ":" + language.getFileExtension() + "]" ;
-                }
-                languages += "}";
-
-                context.getUser().sendMessage("Languages: " + languages);
-
-                if (tmpLanguage == null && contextLanguage == null) {
+                if (extensionLanguage == null) {
                     context.getUser().sendMessage(ChatColor.DARK_RED
-                                                  + "Language not set and/or invalid file extension! Use .execute <file.extension> or .setlanguage <language>");
+                                                  + "Unknown file extension: " + extension);
                     return true;
                 }
 
-                if (tmpLanguage != null) {
-                    contextLanguage = tmpLanguage;
-                }
+                // Use a new context when -f is defined
+                context = new ScriptContext(context.getUser(), extensionLanguage, context.getPlugin());
             }
         }
 
-        if(contextLanguage == null && context.getScriptLanguage() == null ) {
+        if(context.getScriptLanguage() == null ) {
             context.getUser().sendMessage(ChatColor.RED + "Couldn't execute code: Language not set! Use .setlanguage <language>");
             return true;
-        } else if(contextLanguage == null) {
-            contextLanguage = context.getScriptLanguage();
         }
 
-        ScriptHandler.getInstance().setVariables(context);
+        ScriptHandler.getInstance().setDefaultVariables(context);
 
         String code = context.getCode();
         if(scriptName != null) {
-            code = Util.loadFile(scriptName, contextLanguage);
+            code = Util.loadFile(scriptName, context.getScriptLanguage());
         }
 
         result =
-                String.valueOf(contextLanguage
-                                       .run(context, code, noImports,
-                                            clear));
+                context.getScriptLanguage().run(context, code, noImports,
+                             clear);
 
+        if(result instanceof Object[]) {
+            result = Arrays.asList((Object[])result);
+        }
 
         if (!skipOutput) {
-            context.getUser().sendMessage(ChatColor.AQUA + "Output: " + ChatColor.GREEN + contextLanguage.formatCode(result));
+            context.getUser().sendMessage(ChatColor.AQUA + "Output: " + ChatColor.GREEN + context.getScriptLanguage().formatCode(String.valueOf(result)));
         }
 
         return true;
