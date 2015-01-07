@@ -33,8 +33,8 @@ public class HelpCommand extends ScriptCommandBase {
     protected boolean onExecute(ScriptContext context, String[] args, String label, String nl)
             throws Exception {
 
-        context.getUser().sendMessage(ChatColor.GREEN + "[Help] " + ChatColor.GRAY + "Available Commands: .help, .load <file>, " +
-                                       ".save <file>, .execute [file], .setvariable <name> <value>, .history, .clear, .setlanguage <language>");
+        context.getUser().sendMessage(ChatColor.GREEN + "[Help] " + ChatColor.GRAY + "Available Commands: .autostart [-f <language>], .help, .load <file>, " +
+                                       ".save <file>, .execute [-f <file>], .setvariable <name> <value>, .history, .clear, .setlanguage <language>");
         return true;
     }
 

@@ -17,19 +17,19 @@
 
 package de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl;
 
-import de.static_interface.sinklibrary.*;
-import de.static_interface.sinklibrary.api.user.*;
-import de.static_interface.sinkscripts.*;
-import de.static_interface.sinkscripts.scriptengine.scriptlanguage.*;
+import de.static_interface.sinklibrary.SinkLibrary;
+import de.static_interface.sinkscripts.SinkScripts;
 import de.static_interface.sinkscripts.scriptengine.scriptcontext.ScriptContext;
-import de.static_interface.sinkscripts.scriptengine.scriptcontext.impl.*;
-import de.static_interface.sinkscripts.util.*;
-import org.bukkit.*;
-import org.bukkit.plugin.*;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguage;
+import de.static_interface.sinkscripts.util.JoinClassLoader;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
 
-import javax.script.*;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 
-public abstract class ScriptEngineScript extends ScriptLanguage {
+public abstract class ScriptEngineScript extends ScriptLanguage<ScriptEngine> {
 
     String engineName;
 
@@ -41,21 +41,17 @@ public abstract class ScriptEngineScript extends ScriptLanguage {
     @Override
     public Object eval(ScriptContext context, String code) {
         try {
-            return ((ScriptEngine) context.getExecutor()).eval(code);
+            return ((ScriptEngine)context.getExecutor()).eval(code);
         } catch (ScriptException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public ScriptContext createNewShellInstance(SinkUser user) {
-        ScriptEngine e = new ScriptEngineManager
+    public ScriptEngine createExecutor() {
+        return new ScriptEngineManager
                 (new JoinClassLoader(SinkLibrary.getInstance().getClazzLoader(), Bukkit.class.getClassLoader(),
                                      ((SinkScripts)plugin).getClazzLoader())).getEngineByName(engineName);
-        if (e == null) {
-            throw new NullPointerException("Couldn't find ScriptEngine: " + engineName + ". Did you forgot to add a library?");
-        }
-        return new ScriptEngineContext(user, e, this, plugin);
     }
 
     @Override

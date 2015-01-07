@@ -17,28 +17,27 @@
 
 package de.static_interface.sinkscripts.scriptengine.scriptlanguage;
 
-import static de.static_interface.sinkscripts.SinkScripts.*;
+import static de.static_interface.sinkscripts.SinkScripts.SCRIPTS_FOLDER;
 
-import de.static_interface.sinklibrary.*;
-import de.static_interface.sinklibrary.api.user.*;
-import de.static_interface.sinkscripts.scriptengine.*;
-import de.static_interface.sinkscripts.scriptengine.scriptcontext.*;
-import de.static_interface.sinkscripts.util.*;
-import org.bukkit.plugin.*;
+import de.static_interface.sinklibrary.SinkLibrary;
+import de.static_interface.sinkscripts.scriptengine.ScriptHandler;
+import de.static_interface.sinkscripts.scriptengine.scriptcontext.ScriptContext;
+import de.static_interface.sinkscripts.util.Util;
+import org.bukkit.ChatColor;
+import org.bukkit.plugin.Plugin;
 
-import java.io.*;
-import java.util.*;
-import java.util.logging.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.logging.Level;
 
-public abstract class ScriptLanguage {
-
+public abstract class ScriptLanguage<T> {
     public File SCRIPTLANGUAGE_DIRECTORY;
     public File FRAMEWORK_FOLDER;
     public File AUTOSTART_DIRECTORY;
     protected String fileExtension;
     protected Plugin plugin;
     protected String name;
-    private ScriptContext consoleContext;
 
     public ScriptLanguage(Plugin plugin, String name, String fileExtension) {
         this.fileExtension = fileExtension.toLowerCase();
@@ -91,56 +90,52 @@ public abstract class ScriptLanguage {
         }
     }
 
-    public abstract Object eval(ScriptContext context, String code);
+    protected abstract Object eval(ScriptContext context, String code);
 
     /**
-     * @param commandArgs String[] you want to convert to value
+     * @param args String[] you want to convert to value
      * @return primite Value
      */
 
-    public Object getValue(String[] commandArgs) {
-        String commandArg = commandArgs[0];
-
-        if (commandArg.equalsIgnoreCase("null")) {
-            return null;
-        }
+    public Object getValue(String[] args) {
+        String arg = args[0];
 
         try {
-            Long l = Long.parseLong(commandArg);
+            Long l = Long.parseLong(arg);
             if (l <= Byte.MAX_VALUE) {
-                return Byte.parseByte(commandArg);
+                return Byte.parseByte(arg);
             } else if (l <= Short.MAX_VALUE) {
-                return Short.parseShort(commandArg); // Value is a Short
+                return Short.parseShort(arg); // Value is a Short
             } else if (l <= Integer.MAX_VALUE) {
-                return Integer.parseInt(commandArg); // Value is an Integer
+                return Integer.parseInt(arg); // Value is an Integer
             }
             return l; // Value is a Long
-        } catch (Exception ignored) {
+        } catch (NumberFormatException ignored) {
         }
 
         try {
-            return Float.parseFloat(commandArg); // Value is Float
-        } catch (Exception ignored) {
+            return Float.parseFloat(arg); // Value is Float
+        } catch (NumberFormatException ignored) {
         }
 
         try {
-            return Double.parseDouble(commandArg); // Value is Double
-        } catch (Exception ignored) {
+            return Double.parseDouble(arg); // Value is Double
+        } catch (NumberFormatException ignored) {
         }
 
         //Parse Booleans
-        if (commandArg.equalsIgnoreCase("true") || commandArg.equals("1")) {
+        if (arg.equalsIgnoreCase("true")) {
             return true;
-        } else if (commandArg.equalsIgnoreCase("false") || commandArg.equals("0")) {
+        } else if (arg.equalsIgnoreCase("false")) {
             return false;
         }
 
-        if (commandArg.startsWith("'") && commandArg.endsWith("'") && commandArg.length() == 3) {
-            return commandArg.toCharArray()[1]; // Value is char
+        if (arg.startsWith("'") && arg.endsWith("'") && arg.length() == 3) {
+            return arg.toCharArray()[1]; // Value is char
         }
 
         String tmp = "";
-        for (String s : commandArgs) {
+        for (String s : args) {
             if (tmp.equals("")) {
                 tmp = s;
             } else {
@@ -164,34 +159,39 @@ public abstract class ScriptLanguage {
         return defaultImports + code;
     }
 
-    protected abstract String getDefaultImports();
-
-    public abstract ScriptContext createNewShellInstance(SinkUser user);
+    public abstract String getDefaultImports();
 
     public abstract void setVariable(ScriptContext context, String name, Object value);
 
-    public abstract List<String> getImportIdentifier();
+    public abstract Collection<String> getImportIdentifiers();
 
-    public void onAutoStart() {
-        autoStartRecur(AUTOSTART_DIRECTORY);
+    public void onAutoStart(ScriptContext context) {
+        autoStartRecur(AUTOSTART_DIRECTORY, context);
     }
 
-    private void autoStartRecur(File directory) {
+    public abstract T createExecutor();
+
+    private void autoStartRecur(File directory, ScriptContext context) {
         File[] files = directory.listFiles();
         if (files == null) {
             return;
         }
         for (File file : files) {
-            if (file.isDirectory()) {
-                autoStartRecur(file);
-            } else {
-                if (!Util.getFileExtension(file).equals(getFileExtension())) {
-                    continue;
+            try {
+                if (file.isDirectory()) {
+                    autoStartRecur(file, context);
+                } else {
+                    if (!Util.getFileExtension(file).equals(getFileExtension())) {
+                        continue;
+                    }
+
+                    context.getUser().sendMessage(
+                            ChatColor.DARK_GREEN + "[AutoStart] " + ChatColor.GOLD + getName() + ChatColor.WHITE + ": " + file.getName());
+                    ScriptHandler.getInstance().setVariables(context);
+                    run(context, file);
                 }
-
-                ScriptHandler.setVariables(getConsoleContext());
-
-                run(getConsoleContext(), file);
+            } catch (Throwable thr) {
+                Util.reportException(context.getUser(), thr);
             }
         }
     }
@@ -209,14 +209,6 @@ public abstract class ScriptLanguage {
      * Don't try to call the library or classes from it
      */
     public void onPreInit() {
-    }
-
-
-    public ScriptContext getConsoleContext() {
-        if (consoleContext == null) {
-            consoleContext = createNewShellInstance(SinkLibrary.getInstance().getConsoleUser());
-        }
-        return consoleContext;
     }
 
     public final void init() {

@@ -17,17 +17,24 @@
 
 package de.static_interface.sinkscripts.scriptengine.scriptcommand;
 
-import de.static_interface.sinklibrary.api.user.*;
-import de.static_interface.sinkscripts.scriptengine.*;
-import de.static_interface.sinkscripts.scriptengine.scriptcontext.*;
-import de.static_interface.sinkscripts.scriptengine.scriptcontext.impl.*;
-import org.apache.commons.cli.*;
-import org.bukkit.*;
+import de.static_interface.sinkscripts.scriptengine.ScriptHandler;
+import de.static_interface.sinkscripts.scriptengine.scriptcontext.ScriptContext;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.bukkit.ChatColor;
 
-import java.io.*;
-import java.util.*;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.HashMap;
+import java.util.Map;
 
-import javax.annotation.*;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class ScriptCommandBase {
     private static Map<String, ScriptCommandBase> scriptCommands = new HashMap<>();
@@ -43,6 +50,17 @@ public abstract class ScriptCommandBase {
 
     public ScriptCommandBase(String name) {
         this.name = name;
+        initOptions();
+    }
+
+    public ScriptCommandBase(String name, boolean useCli) {
+        this.name = name;
+        if(useCli) {
+            initOptions();
+        }
+    }
+
+    private void initOptions(){
         options = new Options();
         options.addOption(Option.builder("h")
                                   .desc("Shows this message")
@@ -52,17 +70,13 @@ public abstract class ScriptCommandBase {
         options = buildOptions(options);
     }
 
-    public final void onPreExecute(SinkUser user, String[] args, String label, String nl) throws Exception{
-        cmdLine = parser.parse(options, args);
-
-        ScriptContext context = ScriptHandler.getScriptContexts().get(ScriptHandler.userToKey(user));
-        if(context instanceof DummyContext && ScriptHandler.getLanguage(context.getUser()) != null) {
-            String code = context.getCode();
-            context = ScriptHandler.getLanguage(context.getUser()).createNewShellInstance(context.getUser());
-            context.setCode(code);
+    public final void onPreExecute(ScriptContext context, String[] args, String label, String nl) throws Exception {
+        if(options != null) {
+            cmdLine = parser.parse(options, args);
+            args = cmdLine.getArgs();
         }
 
-        if(cmdLine.hasOption('h')) {
+        if(options != null && options.hasOption("h") && cmdLine.hasOption('h')) {
             context.getUser().sendMessage(getUsage());
             return;
         }
@@ -79,7 +93,7 @@ public abstract class ScriptCommandBase {
             return;
         }
 
-        ScriptHandler.getScriptContexts().put(ScriptHandler.userToKey(user), context);
+        ScriptHandler.getInstance().getScriptContexts().put(ScriptHandler.getInstance().userToKey(context.getUser()), context);
     }
 
     protected abstract boolean onExecute(ScriptContext context, String[] args, String label, String nl) throws Exception;

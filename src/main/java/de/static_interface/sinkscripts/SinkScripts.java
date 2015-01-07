@@ -17,17 +17,32 @@
 
 package de.static_interface.sinkscripts;
 
-import de.static_interface.sinklibrary.*;
+import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinkscripts.command.ScriptCommand;
-import de.static_interface.sinkscripts.scriptengine.*;
-import de.static_interface.sinkscripts.scriptengine.scriptcommand.*;
-import de.static_interface.sinkscripts.scriptengine.scriptlanguage.*;
-import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.*;
-import org.bukkit.*;
-import org.bukkit.plugin.java.*;
+import de.static_interface.sinkscripts.scriptengine.ScriptHandler;
+import de.static_interface.sinkscripts.scriptengine.scriptcommand.AutostartCommand;
+import de.static_interface.sinkscripts.scriptengine.scriptcommand.ClearCommand;
+import de.static_interface.sinkscripts.scriptengine.scriptcommand.ExecuteCommand;
+import de.static_interface.sinkscripts.scriptengine.scriptcommand.HelpCommand;
+import de.static_interface.sinkscripts.scriptengine.scriptcommand.HistoryCommand;
+import de.static_interface.sinkscripts.scriptengine.scriptcommand.ListLanguageCommand;
+import de.static_interface.sinkscripts.scriptengine.scriptcommand.LoadCommand;
+import de.static_interface.sinkscripts.scriptengine.scriptcommand.SaveCommand;
+import de.static_interface.sinkscripts.scriptengine.scriptcommand.ScriptCommandBase;
+import de.static_interface.sinkscripts.scriptengine.scriptcommand.SetLanguageCommand;
+import de.static_interface.sinkscripts.scriptengine.scriptcommand.SetVariableCommand;
+import de.static_interface.sinkscripts.scriptengine.scriptcontext.ScriptContext;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguage;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.GroovyScript;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.JavaScriptScript;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.LuaScript;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.PythonScript;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.RubyScript;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.*;
-import java.util.logging.*;
+import java.io.File;
+import java.util.logging.Level;
 
 public class SinkScripts extends JavaPlugin {
 
@@ -54,7 +69,7 @@ public class SinkScripts extends JavaPlugin {
         registerCommands();
         registerScriptLanguages();
 
-        for (ScriptLanguage language : ScriptHandler.getScriptLanguages()) {
+        for (ScriptLanguage language : ScriptHandler.getInstance().getScriptLanguages()) {
             language.init();
         }
 
@@ -64,6 +79,7 @@ public class SinkScripts extends JavaPlugin {
     }
 
     private void initScriptCommands() {
+        ScriptCommandBase.registerCommand(new AutostartCommand());
         ScriptCommandBase.registerCommand(new ClearCommand());
         ScriptCommandBase.registerCommand(new ExecuteCommand());
         ScriptCommandBase.registerCommand(new HelpCommand());
@@ -86,21 +102,25 @@ public class SinkScripts extends JavaPlugin {
         System.setProperty("CMSPermGenSweepingEnabled", "true");
     }
 
-    private void registerScriptLanguages() {
-        ScriptHandler.register(new GroovyScript(this));
-        ScriptHandler.register(new JavaScript(this));
-        ScriptHandler.register(new LuaScript(this));
-        ScriptHandler.register(new PythonScript(this));
-        ScriptHandler.register(new RubyScript(this));
+    public void registerScriptLanguages() {
+        ScriptHandler.getInstance().register(new GroovyScript(this));
+        ScriptHandler.getInstance().register(new JavaScriptScript(this));
+        ScriptHandler.getInstance().register(new LuaScript(this));
+        ScriptHandler.getInstance().register(new PythonScript(this));
+        ScriptHandler.getInstance().register(new RubyScript(this));
     }
 
     public ClassLoader getClazzLoader() {
         return getClassLoader();
     }
 
-    private void loadAutoStart() {
-        for (ScriptLanguage language : ScriptHandler.getScriptLanguages()) {
-            language.onAutoStart();
+    public void loadAutoStart() {
+        loadAutoStart(getConsoleContext());
+    }
+
+    public void loadAutoStart(ScriptContext context) {
+        for (ScriptLanguage language : ScriptHandler.getInstance().getScriptLanguages()) {
+            language.onAutoStart(context);
         }
     }
 
@@ -120,5 +140,9 @@ public class SinkScripts extends JavaPlugin {
 
     private void registerCommands() {
         SinkLibrary.getInstance().registerCommand("script", new ScriptCommand(this));
+    }
+
+    public ScriptContext getConsoleContext() {
+        return ScriptHandler.getInstance().getScriptContext(SinkLibrary.getInstance().getConsoleUser());
     }
 }

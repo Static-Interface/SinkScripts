@@ -21,12 +21,12 @@ import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 
-public class JavaScript extends ScriptEngineScript {
+public class JavaScriptScript extends ScriptEngineScript {
 
-    public JavaScript(Plugin plugin) {
+    public JavaScriptScript(Plugin plugin) {
         super(plugin, "javascript", "js", "JavaScript");
     }
 
@@ -178,12 +178,12 @@ public class JavaScript extends ScriptEngineScript {
     }
 
     @Override
-    protected String getDefaultImports() {
+    public String getDefaultImports() {
         return ""; // Todo!
     }
 
     @Override
-    public List<String> getImportIdentifier() {
+    public Collection<String> getImportIdentifiers() {
         return new ArrayList<>(); // Todo!
     }
 }

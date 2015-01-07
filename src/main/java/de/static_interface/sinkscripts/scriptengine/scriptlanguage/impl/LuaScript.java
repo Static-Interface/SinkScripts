@@ -20,8 +20,8 @@ package de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 
 public class LuaScript extends ScriptEngineScript {
 
@@ -129,12 +129,12 @@ public class LuaScript extends ScriptEngineScript {
     }
 
     @Override
-    protected String getDefaultImports() {
+    public String getDefaultImports() {
         return ""; //??
     }
 
     @Override
-    public List<String> getImportIdentifier() {
+    public Collection<String> getImportIdentifiers() {
         return null; //none?
     }
 }

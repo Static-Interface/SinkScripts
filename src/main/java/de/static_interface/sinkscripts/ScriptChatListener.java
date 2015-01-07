@@ -56,19 +56,19 @@ public class ScriptChatListener implements Listener {
     public void handleChatScript(final AsyncPlayerChatEvent event) {
         IngameUser user = SinkLibrary.getInstance().getIngameUser(event.getPlayer());
 
-        if (!ScriptHandler.isEnabled(user)) {
+        if (!ScriptHandler.getInstance().isEnabled(user)) {
             return;
         }
         event.setCancelled(true);
         String currentLine = event.getMessage();
-        ScriptHandler.handleLine(user, currentLine, plugin);
+        ScriptHandler.getInstance().handleLine(user, currentLine, plugin);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void handleIrcMessage(IrcReceiveMessageEvent event) {
         SinkUser user = SinkLibrary.getInstance().getIrcUser(event.getUser(), event.getChannel().getName());
 
-        if (!ScriptHandler.isEnabled(user)) {
+        if (!ScriptHandler.getInstance().isEnabled(user)) {
             return;
         }
 
@@ -77,17 +77,17 @@ public class ScriptChatListener implements Listener {
         if (currentLine.startsWith(ircCommandPrefix)) {
             return;
         }
-        ScriptHandler.handleLine(user, currentLine, plugin);
+        ScriptHandler.getInstance().handleLine(user, currentLine, plugin);
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerQuit(PlayerQuitEvent event) {
         IngameUser user = SinkLibrary.getInstance().getIngameUser(event.getPlayer());
 
-        String name = ScriptHandler.userToKey(user);
-        ScriptHandler.setEnabled(user, false);
-        if (ScriptHandler.getScriptContexts().containsKey(name)) {
-            ScriptHandler.getScriptContexts().remove(name);
+        String name = ScriptHandler.getInstance().userToKey(user);
+        ScriptHandler.getInstance().setEnabled(user, false);
+        if (ScriptHandler.getInstance().getScriptContexts().containsKey(name)) {
+            ScriptHandler.getInstance().getScriptContexts().remove(name);
         }
     }
 }

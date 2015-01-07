@@ -36,7 +36,7 @@ public class ListLanguageCommand extends ScriptCommandBase {
             throws Exception {
         String languages = "";
 
-        for (ScriptLanguage lang : ScriptHandler.getScriptLanguages()) {
+        for (ScriptLanguage lang : ScriptHandler.getInstance().getScriptLanguages()) {
             if (languages.equals("")) {
                 languages = lang.getName();
                 continue;

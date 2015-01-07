@@ -17,16 +17,16 @@
 
 package de.static_interface.sinkscripts.scriptengine.scriptcommand;
 
-import de.static_interface.sinklibrary.util.*;
-import de.static_interface.sinkscripts.scriptengine.*;
-import de.static_interface.sinkscripts.scriptengine.scriptcontext.*;
-import de.static_interface.sinkscripts.scriptengine.scriptcontext.impl.*;
-import de.static_interface.sinkscripts.scriptengine.scriptlanguage.*;
+import de.static_interface.sinklibrary.util.StringUtil;
+import de.static_interface.sinkscripts.scriptengine.ScriptHandler;
+import de.static_interface.sinkscripts.scriptengine.scriptcontext.ScriptContext;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguage;
 import de.static_interface.sinkscripts.util.Util;
-import org.apache.commons.cli.*;
-import org.bukkit.*;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.bukkit.ChatColor;
 
-import javax.annotation.*;
+import javax.annotation.Nonnull;
 
 public class ExecuteCommand extends ScriptCommandBase {
 
@@ -76,7 +76,6 @@ public class ExecuteCommand extends ScriptCommandBase {
 
     @Override
     protected boolean onExecute(ScriptContext context, String[] args, String label, String nl) throws Exception {
-
         boolean noImports = cmdLine.hasOption('n');
         boolean clear = cmdLine.hasOption('c');
         boolean skipOutput = cmdLine.hasOption('s');
@@ -101,7 +100,23 @@ public class ExecuteCommand extends ScriptCommandBase {
                 scriptName = StringUtil.formatArrayToString(tmp, ".", 0, tmp.length-1).trim(); // remove extension
                 ScriptLanguage
                         tmpLanguage =
-                        ScriptHandler.getScriptLanguageByExtension(extension); // get language by extension
+                        ScriptHandler.getInstance().getScriptLanguageByExtension(extension); // get language by extension
+
+                context.getUser().sendMessage("Extension: \"" + extension + "\"");
+
+                String languages = "{";
+                for(ScriptLanguage language : ScriptHandler.getInstance().getScriptLanguages()) {
+                    if(languages.equals("{")) {
+
+                        continue;
+                    }
+
+                    languages += " , [" + language.getName() + ":" + language.getFileExtension() + "]" ;
+                }
+                languages += "}";
+
+                context.getUser().sendMessage("Languages: " + languages);
+
                 if (tmpLanguage == null && contextLanguage == null) {
                     context.getUser().sendMessage(ChatColor.DARK_RED
                                                   + "Language not set and/or invalid file extension! Use .execute <file.extension> or .setlanguage <language>");
@@ -112,20 +127,18 @@ public class ExecuteCommand extends ScriptCommandBase {
                     contextLanguage = tmpLanguage;
                 }
             }
+        } else {
+            context.getUser().sendMessage("Extension not found: " + scriptName);
         }
 
-        if(contextLanguage == null || ScriptHandler.getLanguage(context.getUser()) == null) {
+        if(contextLanguage == null && context.getScriptLanguage() == null ) {
             context.getUser().sendMessage(ChatColor.RED + "Language not set! Use .setlanguage <language>");
             return true;
+        } else if(contextLanguage == null) {
+            contextLanguage = context.getScriptLanguage();
         }
 
-        if(context instanceof DummyContext) {
-            String code = context.getCode();
-            context = ScriptHandler.getLanguage(context.getUser()).createNewShellInstance(context.getUser());
-            context.setCode(code);
-        }
-
-        ScriptHandler.setVariables(context);
+        ScriptHandler.getInstance().setVariables(context);
 
         String code = context.getCode();
         if(scriptName != null) {

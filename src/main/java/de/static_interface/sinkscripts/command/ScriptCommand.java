@@ -36,18 +36,19 @@ public class ScriptCommand extends SinkCommand {
     public boolean onExecute(CommandSender sender, String label, String[] args) {
         SinkUser user = SinkLibrary.getInstance().getUser((Object)sender);
 
-        if (!(sender instanceof ConsoleCommandSender) && ScriptHandler.isEnabled(user)) {
-            ScriptHandler.setEnabled(user, false);
+        if (!(sender instanceof ConsoleCommandSender) && ScriptHandler.getInstance().isEnabled(user)){
+            ScriptHandler.getInstance().setEnabled(user, false);
             sender.sendMessage(ChatColor.DARK_RED + "Disabled Interactive Scripting Console");
             return true;
         }
+
 
         if (args.length > 0) {
             String currentLine = "";
             for (String arg : args) {
                 currentLine += arg + ' ';
             }
-            ScriptHandler.handleLine(user, currentLine, plugin);
+            ScriptHandler.getInstance().handleLine(user, currentLine, plugin);
             return true;
         }
 
@@ -55,7 +56,7 @@ public class ScriptCommand extends SinkCommand {
             return false;
         }
 
-        ScriptHandler.setEnabled(user, true);
+        ScriptHandler.getInstance().setEnabled(user, true);
         sender.sendMessage(ChatColor.DARK_GREEN + "Enabled Interactive Scripting Console");
         return true;
     }

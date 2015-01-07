@@ -25,18 +25,22 @@ import javax.annotation.*;
 
 public class SetVariableCommand extends ScriptCommandBase {
 
+    //Todo: Fix this
+
     public SetVariableCommand() {
-        super("setvariable");
+        super("setvariable", false);
     }
 
     @Override
     protected boolean onExecute(ScriptContext context, String[] args, String label, String nl)
     throws Exception {
-        args = label.replaceFirst("\\Q" + getName() + "\\E", "").split("=");
-        String variableName = args[0].split(" ")[1];
-        String[] rawValue = new String[args.length - 1];
+        String[] rawArgs = args;
+        args = label.trim().replaceFirst("\\Q" + getName() + "\\E", "").split("=");
+        String variableName = args[0];
+
+        String[] rawValue = new String[rawArgs.length - 1];
         for (int i = 0; i < rawValue.length; i++) {
-            rawValue[i] = args[i - 1];
+            rawValue[i] = rawArgs[i + 1];
         }
 
         Object value = context.getScriptLanguage().getValue(rawValue);

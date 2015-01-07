@@ -17,40 +17,58 @@
 
 package de.static_interface.sinkscripts.scriptengine;
 
-import de.static_interface.sinklibrary.api.user.*;
-import de.static_interface.sinklibrary.user.*;
-import de.static_interface.sinklibrary.util.*;
+import de.static_interface.sinklibrary.api.user.SinkUser;
+import de.static_interface.sinklibrary.user.IngameUser;
+import de.static_interface.sinklibrary.util.BukkitUtil;
 import de.static_interface.sinklibrary.util.StringUtil;
-import de.static_interface.sinkscripts.*;
-import de.static_interface.sinkscripts.scriptengine.scriptcommand.*;
-import de.static_interface.sinkscripts.scriptengine.scriptlanguage.*;
-import de.static_interface.sinkscripts.scriptengine.scriptcontext.*;
-import de.static_interface.sinkscripts.scriptengine.scriptcontext.impl.*;
-import de.static_interface.sinkscripts.util.*;
-import org.bukkit.*;
-import org.bukkit.entity.*;
-import org.bukkit.plugin.*;
-import org.bukkit.util.*;
+import de.static_interface.sinkscripts.SinkScripts;
+import de.static_interface.sinkscripts.scriptengine.scriptcommand.ScriptCommandBase;
+import de.static_interface.sinkscripts.scriptengine.scriptcontext.ScriptContext;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguage;
+import de.static_interface.sinkscripts.util.Util;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.util.BlockIterator;
 
-import java.util.*;
-import java.util.logging.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.logging.Level;
 
 public class ScriptHandler {
+    private static ScriptHandler instance;
 
-    protected static HashMap<String, ScriptContext> shellInstances = new HashMap<>(); // PlayerName - Shell Instance
-    private static ArrayList<String> enabledUsers = new ArrayList<>();
-    private static HashMap<String, ScriptLanguage> scriptLanguages = new HashMap<>();
-    private static HashMap<String, ScriptLanguage> languageInstances = new HashMap<>();
+    private HashMap<String, ScriptContext> contextInstances; // PlayerName - Shell Instance
+    private ArrayList<String> enabledUsers = new ArrayList<>();
+    private HashMap<String, ScriptLanguage> scriptLanguages;
 
-    public static Collection<ScriptLanguage> getScriptLanguages() {
+    public ScriptHandler(){
+        instance = this;
+        contextInstances = new HashMap<>();
+        scriptLanguages = new HashMap<>();
+    }
+
+    public static ScriptHandler getInstance() {
+        if(instance == null) {
+            instance = new ScriptHandler();
+        }
+
+        return instance;
+    }
+
+    public Collection<ScriptLanguage> getScriptLanguages() {
         return scriptLanguages.values();
     }
 
-    public static ScriptLanguage getScriptLanguageByExtension(String ext) {
+    public ScriptLanguage getScriptLanguageByExtension(String ext) {
         return scriptLanguages.get(ext);
     }
 
-    public static ScriptLanguage getScriptLanguageByName(String name) {
+    public ScriptLanguage getScriptLanguageByName(String name) {
         for (ScriptLanguage language : getScriptLanguages()) {
             if (language.getName().equalsIgnoreCase(name)) {
                 return language;
@@ -59,11 +77,11 @@ public class ScriptHandler {
         return null;
     }
 
-    public static boolean isEnabled(SinkUser user) {
+    public boolean isEnabled(SinkUser user) {
         return enabledUsers.contains(userToKey(user));
     }
 
-    public static void setEnabled(SinkUser user, boolean enabled) {
+    public void setEnabled(SinkUser user, boolean enabled) {
         if (enabled) {
             enabledUsers.add(userToKey(user));
         } else {
@@ -71,20 +89,18 @@ public class ScriptHandler {
         }
     }
 
-    public static String userToKey(SinkUser user) {
+    public String userToKey(SinkUser user) {
         String suffix = user.getProvider().getTabCompleterSuffix();
         if(suffix == null) suffix = "";
         return user.getName() + suffix;
     }
 
-    public static void register(ScriptLanguage scriptLanguage) {
+    public void register(ScriptLanguage scriptLanguage) {
         scriptLanguages.put(scriptLanguage.getFileExtension(), scriptLanguage);
         scriptLanguage.preInit();
     }
 
-
-
-    public static void handleCommand(ScriptContext context, String cmd, String[] args, String label, String nl) {
+    public void handleCommand(ScriptContext context, String cmd, String[] args, String label, String nl) {
         ScriptCommandBase command = ScriptCommandBase.get(cmd);
 
         if(command == null) {
@@ -93,41 +109,17 @@ public class ScriptHandler {
         }
 
         try {
-            command.onPreExecute(context.getUser(), args, label, nl);
+            command.onPreExecute(context, args, label, nl);
         } catch (Exception e) {
             Util.reportException(context.getUser(), e);
         }
     }
 
-    public static void handleLine(final SinkUser user, final String line, final Plugin plugin) {
-        ScriptContext context;
-
+    public void handleLine(final SinkUser user, final String line, final Plugin plugin) {
         boolean async = line.contains(" --async");
+        ScriptContext context = getScriptContext(user);
 
-        final ScriptLanguage language = getLanguage(user);
-
-        if (user instanceof ConsoleUser) {
-            context = language.getConsoleContext();
-        } else {
-            context = shellInstances.get(ScriptHandler.userToKey(user));
-        }
-        if (context == null) {
-            SinkScripts.getInstance().getLogger().log(Level.INFO, "Initializing ShellInstance for " + user.getName());
-
-            if (language == null) {
-                context = new DummyContext(user, plugin); // Used for .setLanguage
-            } else {
-                context = language.createNewShellInstance(user);
-            }
-
-            shellInstances.put(ScriptHandler.userToKey(user), context);
-        }
-
-        // Still null?!
-        if (context == null) {
-            throw new IllegalStateException("Couldn't create shellInstance!");
-        }
-
+        final ScriptLanguage language = context.getScriptLanguage();
         final ScriptContext tmpInstance = context;
 
         Runnable runnable = new Runnable() {
@@ -152,7 +144,7 @@ public class ScriptHandler {
                     }
 
                     if(language == null) {
-                        user.sendMessage(ChatColor.RED + "Language not set! Use .setlanguage <language>");
+                        user.sendMessage(ChatColor.RED + "Couldn't set code: Language not set! Use .setlanguage <language>");
                         return;
                     }
 
@@ -193,11 +185,6 @@ public class ScriptHandler {
                             code +=  line.replaceFirst("\\Q^\\E", "") + nl;
                         }
 
-                        //bad :(
-                        //while(code.startsWith(System.lineSeparator())) {
-                        //    code = code.replaceFirst("\\Q" + System.lineSeparator() + "\\E", "") + nl;
-                        //}
-
                         if(!currentLine.trim().equals("^"))  {
                             currentLine = currentLine.replaceFirst("\\Q^\\E", "");
                             isReplace = true;
@@ -211,8 +198,8 @@ public class ScriptHandler {
 
                     boolean isImport = false;
 
-                    if (language != null && language.getImportIdentifier() != null && !codeSet) {
-                        for (String s : language.getImportIdentifier()) {
+                    if (language != null && language.getImportIdentifiers() != null && !codeSet) {
+                        for (String s : (Collection<String>)language.getImportIdentifiers()) {
                             if (currentLine.startsWith(s)) {
                                 code = currentLine + nl + code + nl;
                                 isImport = true;
@@ -221,9 +208,6 @@ public class ScriptHandler {
                         }
                     }
 
-                    //dont use new line if line starts with "<" (e.g. if the line is too long or you want to add something to it)
-
-
                     if (!isImport && !codeSet) {
                         code = code + nl + currentLine + nl;
                     }
@@ -231,7 +215,7 @@ public class ScriptHandler {
 
                     String prefix = isReplace ? ChatColor.GOLD + "[Replace]" : ChatColor.DARK_GREEN + "[Input]";
                     user.sendMessage(prefix + " " + ChatColor.WHITE + language.formatCode(currentLine));
-                    //shellInstances.put(ScriptHandler.userToKey(user), localShellInstance);
+                    //contextInstances.put(ScriptHandler.getInstance().userToKey(user), localShellInstance);
                 } catch (Throwable e) {
                     Util.reportException(user, e);
                 }
@@ -245,7 +229,7 @@ public class ScriptHandler {
         }
     }
 
-    public static void setVariables(ScriptContext context) {
+    public void setVariables(ScriptContext context) {
         SinkUser user = context.getUser();
         ScriptLanguage language = context.getScriptLanguage();
 
@@ -268,15 +252,17 @@ public class ScriptHandler {
         }
     }
 
-    public static void setLanguage(SinkUser user, ScriptLanguage lang) {
-        languageInstances.put(ScriptHandler.userToKey(user), lang);
+    public HashMap<String, ScriptContext> getScriptContexts() {
+        return contextInstances;
     }
 
-    public static ScriptLanguage getLanguage(SinkUser user) {
-        return languageInstances.get(ScriptHandler.userToKey(user));
-    }
-
-    public static HashMap<String, ScriptContext> getScriptContexts() {
-        return shellInstances;
+    public ScriptContext getScriptContext(SinkUser user) {
+        ScriptContext context = contextInstances.get(userToKey(user));
+        if(context == null) {
+            SinkScripts.getInstance().getLogger().log(Level.INFO, "Initializing ShellInstance for " + user.getName());
+            context = new ScriptContext(user, null, SinkScripts.getInstance());
+            contextInstances.put(userToKey(user), context);
+        }
+        return context;
     }
 }

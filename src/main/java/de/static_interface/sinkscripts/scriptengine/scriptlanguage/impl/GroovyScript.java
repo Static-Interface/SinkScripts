@@ -17,17 +17,14 @@
 
 package de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl;
 
-import de.static_interface.sinkscripts.scriptengine.scriptcontext.ScriptContext;
 import de.static_interface.sinkscripts.util.Util;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
 
 public class GroovyScript extends ScriptEngineScript {
 
@@ -167,14 +164,8 @@ public class GroovyScript extends ScriptEngineScript {
         return tmp;
     }
 
-    //public Object runCode(ShellInstance shellInstance, String code)
-    //{
-    //    GroovyShell instance = (GroovyShell) shellInstance.getExecutor();
-    //    return instance.evaluate(code);
-    //}
-
     @Override
-    protected String getDefaultImports() {
+    public String getDefaultImports() {
         String nl = Util.getNewLine();
         return "import de.static_interface.sinklibrary.*;" + nl +
                "import de.static_interface.sinkscripts.*;" + nl +
@@ -189,31 +180,9 @@ public class GroovyScript extends ScriptEngineScript {
                "import javax.script.*;" + nl + nl;
     }
 
-    @Override
-    public Object eval(ScriptContext context, String code) {
-        try {
-            return ((ScriptEngine) context.getExecutor()).eval(code);
-        } catch (ScriptException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    //@Override
-    //public ShellInstance createNewShellInstance(CommandSender sender)
-    //{
-    //    GroovyShell groovyShell = new GroovyShell();
-    //    return new GroovyShellInstance(sender, groovyShell);
-    //}
-    //
-    //@Override
-    //public void setVariable(ShellInstance instance, String name, Object value)
-    //{
-    //    GroovyShell shell = (GroovyShell) instance.getExecutor();
-    //    shell.setVariable(name, value);
-    //}
 
     @Override
-    public List<String> getImportIdentifier() {
+    public Collection<String> getImportIdentifiers() {
         List<String> importIdentifiers = new ArrayList<>();
         importIdentifiers.add("import");
         importIdentifiers.add("package");

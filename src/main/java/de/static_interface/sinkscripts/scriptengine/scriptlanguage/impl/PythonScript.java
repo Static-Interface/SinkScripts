@@ -18,11 +18,13 @@
 package de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl;
 
 import de.static_interface.sinklibrary.SinkLibrary;
+import de.static_interface.sinkscripts.SinkScripts;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -140,12 +142,12 @@ public class PythonScript extends ScriptEngineScript {
     }
 
     @Override
-    protected String getDefaultImports() {
+    public String getDefaultImports() {
         return "";
     }
 
     @Override
-    public List<String> getImportIdentifier() {
+    public Collection<String> getImportIdentifiers() {
         List<String> importIdentifiers = new ArrayList<>();
         importIdentifiers.add("from");
         importIdentifiers.add("import");
@@ -173,7 +175,7 @@ public class PythonScript extends ScriptEngineScript {
     private void setupJynx(File jynx) {
         File setup = new File(jynx, "setup.py");
         if (setup.exists()) {
-            run(getConsoleContext(), setup);
+            run(SinkScripts.getInstance().getConsoleContext(), setup);
         }
     }
 }

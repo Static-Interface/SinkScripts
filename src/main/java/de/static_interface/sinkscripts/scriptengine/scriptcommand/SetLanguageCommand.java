@@ -17,14 +17,13 @@
 
 package de.static_interface.sinkscripts.scriptengine.scriptcommand;
 
-import de.static_interface.sinklibrary.user.*;
-import de.static_interface.sinkscripts.scriptengine.*;
-import de.static_interface.sinkscripts.scriptengine.scriptcontext.*;
-import de.static_interface.sinkscripts.scriptengine.scriptlanguage.*;
-import org.apache.commons.cli.*;
-import org.bukkit.*;
+import de.static_interface.sinkscripts.scriptengine.ScriptHandler;
+import de.static_interface.sinkscripts.scriptengine.scriptcontext.ScriptContext;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguage;
+import org.apache.commons.cli.Options;
+import org.bukkit.ChatColor;
 
-import javax.annotation.*;
+import javax.annotation.Nonnull;
 
 public class SetLanguageCommand extends ScriptCommandBase {
 
@@ -38,7 +37,7 @@ public class SetLanguageCommand extends ScriptCommandBase {
         ScriptLanguage newLanguage = null;
         args = cmdLine.getArgs();
 
-        for (ScriptLanguage lang : ScriptHandler.getScriptLanguages()) {
+        for (ScriptLanguage lang : ScriptHandler.getInstance().getScriptLanguages()) {
             if (lang.getName().equals(args[0]) || lang.getFileExtension().equals(args[0])) {
                 newLanguage = lang;
                 break;
@@ -48,15 +47,10 @@ public class SetLanguageCommand extends ScriptCommandBase {
             context.getUser().sendMessage(ChatColor.DARK_RED + "Unknown language: " + args[0]);
             return true;
         }
-        if (context.getUser() instanceof ConsoleUser) {
-            context = newLanguage.getConsoleContext();
-        } else {
-            context  = newLanguage.createNewShellInstance(context.getUser());
-        }
-        ScriptHandler.getScriptContexts().put(ScriptHandler.userToKey(context.getUser()), context);
+
+
         context.setScriptLanguage(newLanguage);
         context.getUser().sendMessage(ChatColor.GOLD + "Language has been set to: " + ChatColor.RED + newLanguage.getName());
-
         return true;
     }
 

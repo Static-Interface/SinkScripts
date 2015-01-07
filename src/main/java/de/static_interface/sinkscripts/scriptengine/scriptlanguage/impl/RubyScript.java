@@ -22,6 +22,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -158,7 +159,7 @@ public class RubyScript extends ScriptEngineScript {
     }
 
     @Override
-    protected String getDefaultImports() {
+    public String getDefaultImports() {
         String nl = Util.getNewLine();
         return "require 'java'" + nl +
 
@@ -183,7 +184,7 @@ public class RubyScript extends ScriptEngineScript {
     }
 
     @Override
-    public List<String> getImportIdentifier() {
+    public Collection<String> getImportIdentifiers() {
         List<String> importIdentifiers = new ArrayList<>();
         importIdentifiers.add("java_import");
         importIdentifiers.add("import");

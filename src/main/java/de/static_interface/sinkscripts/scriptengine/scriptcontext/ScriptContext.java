@@ -17,25 +17,22 @@
 
 package de.static_interface.sinkscripts.scriptengine.scriptcontext;
 
-import de.static_interface.sinklibrary.api.user.*;
-import de.static_interface.sinklibrary.util.Debug;
-import de.static_interface.sinkscripts.scriptengine.*;
-import de.static_interface.sinkscripts.scriptengine.scriptlanguage.*;
-import org.bukkit.plugin.*;
+import de.static_interface.sinklibrary.api.user.SinkUser;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguage;
+import org.bukkit.plugin.Plugin;
 
-import javax.annotation.*;
+import javax.annotation.Nullable;
 
-public abstract class ScriptContext {
+public class ScriptContext {
 
     private final Plugin plugin;
-    private final Object executor;
     private final SinkUser user;
+    private Object executor;
     private ScriptLanguage language;
     private String code;
 
-    public ScriptContext(SinkUser user, Object executor, ScriptLanguage language, Plugin plugin) {
+    public ScriptContext(SinkUser user, ScriptLanguage language, Plugin plugin) {
         this.user = user;
-        this.executor = executor;
         this.language = language;
         this.plugin = plugin;
     }
@@ -53,7 +50,6 @@ public abstract class ScriptContext {
         if(code == null || code.replaceAll("\\Q" + System.lineSeparator() + "\\E", "").equals("null")) {
             code = "";
         }
-        Debug.log("Set Code: " + code);
         this.code = code;
     }
 
@@ -73,7 +69,7 @@ public abstract class ScriptContext {
 
     public void setScriptLanguage(ScriptLanguage language) {
         this.language = language;
-        ScriptHandler.setLanguage(getUser(), language);
+        this.executor = language.createExecutor();
     }
 
     public Plugin getPlugin() {
