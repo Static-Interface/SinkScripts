@@ -17,11 +17,13 @@
 
 package de.static_interface.sinkscripts.scriptengine.scriptcommand;
 
-import de.static_interface.sinkscripts.scriptengine.scriptcontext.*;
-import org.apache.commons.cli.*;
-import org.bukkit.*;
+import de.static_interface.sinkscripts.scriptengine.scriptcontext.ScriptContext;
+import org.apache.commons.cli.Options;
+import org.bukkit.ChatColor;
 
-import javax.annotation.*;
+import java.util.Arrays;
+
+import javax.annotation.Nonnull;
 
 public class SetVariableCommand extends ScriptCommandBase {
 
@@ -34,20 +36,33 @@ public class SetVariableCommand extends ScriptCommandBase {
     @Override
     protected boolean onExecute(ScriptContext context, String[] args, String label, String nl)
     throws Exception {
-        String[] rawArgs = args;
-        args = label.trim().replaceFirst("\\Q" + getName() + "\\E", "").split("=");
-        String variableName = args[0];
-
-        String[] rawValue = new String[rawArgs.length - 1];
-        for (int i = 0; i < rawValue.length; i++) {
-            rawValue[i] = rawArgs[i + 1];
+        String argsLine = "";
+        for(String s : args){
+            if(argsLine.equals("")) {
+                argsLine = s;
+                continue;
+            }
+            argsLine += " " + s;
         }
 
-        Object value = context.getScriptLanguage().getValue(rawValue);
+        args = argsLine.split("=");
+        String variableName = args[0];
+
+        String[] valueArgs = new String[args.length - 1];
+        for (int i = 0; i < valueArgs.length; i++) {
+            valueArgs[i] = args[i + 1];
+        }
+
+        Object value = context.getScriptLanguage().getValue(valueArgs, context.getUser());
+
+        String shownValue = String.valueOf(value);
+        if(value instanceof Object[]){
+            shownValue = Arrays.toString((Object[])value);
+        }
         context.getScriptLanguage().setVariable(context, variableName, value);
         context.getUser().sendMessage(
-                ChatColor.BLUE + variableName + ChatColor.RESET + " has been successfully set to " + ChatColor.RED + value
-                + ChatColor.RESET + " (" + ChatColor.BLUE + value.getClass().getSimpleName() + ")");
+                ChatColor.BLUE + variableName + ChatColor.RESET + " has been set to " + ChatColor.RED + shownValue
+                + ChatColor.RESET + " (" + ChatColor.BLUE + value.getClass().getSimpleName() + ChatColor.DARK_BLUE + ".class" + ChatColor.RESET + ")");
 
         return true;
     }

@@ -132,7 +132,7 @@ public class ExecuteCommand extends ScriptCommandBase {
         }
 
         if(contextLanguage == null && context.getScriptLanguage() == null ) {
-            context.getUser().sendMessage(ChatColor.RED + "Language not set! Use .setlanguage <language>");
+            context.getUser().sendMessage(ChatColor.RED + "Couldn't execute code: Language not set! Use .setlanguage <language>");
             return true;
         } else if(contextLanguage == null) {
             contextLanguage = context.getScriptLanguage();

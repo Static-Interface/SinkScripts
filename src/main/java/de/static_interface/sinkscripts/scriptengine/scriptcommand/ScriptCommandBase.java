@@ -82,7 +82,7 @@ public abstract class ScriptCommandBase {
         }
 
         if(languageRequired() && context.getScriptLanguage() == null) {
-            context.getUser().sendMessage(ChatColor.RED + "Language not set! Use .setlanguage <language>");
+            context.getUser().sendMessage(ChatColor.RED + "Couldn't execute command \"" + getName() + "\"" + ": Language not set! Use .setlanguage <language>");
             return;
         }
 

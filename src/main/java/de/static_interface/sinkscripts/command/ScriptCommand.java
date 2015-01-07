@@ -30,18 +30,12 @@ public class ScriptCommand extends SinkCommand {
     public ScriptCommand(Plugin plugin) {
         super(plugin);
         getCommandOptions().setIrcOpOnly(true);
+        getCommandOptions().setCliOptions(null);
     }
 
     @Override
     public boolean onExecute(CommandSender sender, String label, String[] args) {
         SinkUser user = SinkLibrary.getInstance().getUser((Object)sender);
-
-        if (!(sender instanceof ConsoleCommandSender) && ScriptHandler.getInstance().isEnabled(user)){
-            ScriptHandler.getInstance().setEnabled(user, false);
-            sender.sendMessage(ChatColor.DARK_RED + "Disabled Interactive Scripting Console");
-            return true;
-        }
-
 
         if (args.length > 0) {
             String currentLine = "";
@@ -54,6 +48,12 @@ public class ScriptCommand extends SinkCommand {
 
         if (sender instanceof ConsoleCommandSender) {
             return false;
+        }
+
+        if (!(sender instanceof ConsoleCommandSender) && ScriptHandler.getInstance().isEnabled(user)){
+            ScriptHandler.getInstance().setEnabled(user, false);
+            sender.sendMessage(ChatColor.DARK_RED + "Disabled Interactive Scripting Console");
+            return true;
         }
 
         ScriptHandler.getInstance().setEnabled(user, true);

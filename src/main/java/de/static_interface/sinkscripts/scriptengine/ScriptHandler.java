@@ -133,13 +133,13 @@ public class ScriptHandler {
                     if(line.toCharArray().length > 0 && line.toCharArray()[0] == '.') {
                         String[] args = line.split(" ");
                         String cmd = args[0].replaceFirst("\\Q" + "." + "\\E", "");
-                        String[] cmdArgs = new String[args.length - 1];
 
-                        for (int i = 0; i < cmdArgs.length; i++) {
-                            cmdArgs[i] = args[i + 1];
+                        String[] parsedArgs = new String[args.length - 1];
+                        for (int i = 0; i < parsedArgs.length; i++) {
+                            parsedArgs[i] = args[i + 1];
                         }
 
-                        handleCommand(localShellInstance, cmd, cmdArgs, line, nl);
+                        handleCommand(localShellInstance, cmd, parsedArgs, line, nl);
                         return;
                     }
 

@@ -20,6 +20,7 @@ package de.static_interface.sinkscripts.scriptengine.scriptlanguage;
 import static de.static_interface.sinkscripts.SinkScripts.SCRIPTS_FOLDER;
 
 import de.static_interface.sinklibrary.SinkLibrary;
+import de.static_interface.sinklibrary.api.user.SinkUser;
 import de.static_interface.sinkscripts.scriptengine.ScriptHandler;
 import de.static_interface.sinkscripts.scriptengine.scriptcontext.ScriptContext;
 import de.static_interface.sinkscripts.util.Util;
@@ -28,7 +29,10 @@ import org.bukkit.plugin.Plugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.logging.Level;
 
 public abstract class ScriptLanguage<T> {
@@ -97,7 +101,7 @@ public abstract class ScriptLanguage<T> {
      * @return primite Value
      */
 
-    public Object getValue(String[] args) {
+    public Object getValue(String[] args, SinkUser user) {
         String arg = args[0];
 
         try {
@@ -134,6 +138,7 @@ public abstract class ScriptLanguage<T> {
             return arg.toCharArray()[1]; // Value is char
         }
 
+
         String tmp = "";
         for (String s : args) {
             if (tmp.equals("")) {
@@ -141,6 +146,15 @@ public abstract class ScriptLanguage<T> {
             } else {
                 tmp += " " + s;
             }
+        }
+
+        if(tmp.startsWith("[") && tmp.endsWith("]")){
+            List<String> list = Arrays.asList(tmp.substring(1, tmp.length() - 1).split(", "));
+            List<Object> arrayList = new ArrayList<>();
+            for(String s : list) {
+                arrayList.add(getValue(s.split(" "), user));
+            }
+            return arrayList.toArray(new Object[arrayList.size()]);
         }
         if (tmp.startsWith("\"") && tmp.endsWith("\"")) {
             StringBuilder b = new StringBuilder(tmp);
