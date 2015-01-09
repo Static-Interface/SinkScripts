@@ -21,7 +21,7 @@
 
     <groupId>de.static_interface</groupId>
     <artifactId>SinkScripts</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.2-SNAPSHOT</version>
     <name>SinkScripts</name>
     <url>http://dev.bukkit.org/bukkit-plugins/sinkscripts</url>
 
@@ -48,14 +48,27 @@
         <url>https://github.com/Adventuria/SinkScripts</url>
     </scm>
 
+    <distributionManagement>
+        <repository>
+            <id>deployment</id>
+            <name>Releases Repo</name>
+            <url>http://nexus.static-interface.de/nexus/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>deployment</id>
+            <name>Snapshots Repo</name>
+            <url>http://nexus.static-interface.de/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
     <repositories>
         <repository>
             <id>bukkit-repo</id>
             <url>http://repo.bukkit.org/content/repositories/snapshots/</url>
         </repository>
         <repository>
-            <id>sink-plugins-repo</id>
-            <url>https://raw.github.com/Adventuria/Sink-Plugins/mvn-repo/</url>
+            <id>static-interface</id>
+            <url>http://nexus.static-interface.de/nexus/content/repositories/snapshots/</url>
             <snapshots>
                 <enabled>true</enabled>
                 <updatePolicy>always</updatePolicy>
@@ -64,12 +77,6 @@
     </repositories>
 
     <dependencies>
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections-maven</artifactId>
-            <version>0.9.9-RC2</version>
-            <scope>compile</scope>
-        </dependency>
         <dependency>
             <groupId>org.bukkit</groupId>
             <artifactId>bukkit</artifactId>
