@@ -4,7 +4,7 @@ description: Provides support for scripts.
 author: Trojaner
 website: http://static-interface.de
 main: de.static_interface.sinkscripts.SinkScripts
-soft-depend: [SinkLibrary]
+depend: [SinkLibrary]
 
 commands:
   script:
