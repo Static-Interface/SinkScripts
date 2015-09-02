@@ -19,6 +19,8 @@ package de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl;
 
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinkscripts.SinkScripts;
+import de.static_interface.sinkscripts.scriptengine.scriptcontext.ScriptContext;
+import de.static_interface.sinkscripts.util.Util;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 
@@ -142,7 +144,7 @@ public class PythonScript extends ScriptEngineScript {
     }
 
     @Override
-    public String getDefaultImports() {
+    public String getDefaultImports(ScriptContext context) {
         return "";
     }
 
@@ -175,7 +177,11 @@ public class PythonScript extends ScriptEngineScript {
     private void setupJynx(File jynx) {
         File setup = new File(jynx, "setup.py");
         if (setup.exists()) {
-            run(SinkScripts.getInstance().getConsoleContext(), setup);
+            try {
+                run(SinkScripts.getInstance().getConsoleContext(), setup);
+            } catch (Throwable throwable) {
+                Util.reportException(SinkLibrary.getInstance().getConsoleUser(), throwable);
+            }
         }
     }
 }

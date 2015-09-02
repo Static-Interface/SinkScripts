@@ -53,7 +53,7 @@ public class SetVariableCommand extends ScriptCommandBase {
             valueArgs[i] = args[i + 1];
         }
 
-        Object value = context.getScriptLanguage().getValue(valueArgs, context.getUser());
+        Object value = context.getScriptLanguage().getValue(valueArgs);
 
         String shownValue = String.valueOf(value);
         if(value instanceof Object[]){

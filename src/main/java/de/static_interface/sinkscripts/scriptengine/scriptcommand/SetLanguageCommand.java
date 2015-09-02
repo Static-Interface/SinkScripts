@@ -49,6 +49,11 @@ public class SetLanguageCommand extends ScriptCommandBase {
         }
 
 
+        if(newLanguage.createExecutor(null) == null) {
+            context.getUser().sendMessage(ChatColor.RED + "Couldn't create executor!");
+            return true;
+        }
+
         context.setScriptLanguage(newLanguage);
         context.getUser().sendMessage(ChatColor.GOLD + "Language has been set to: " + ChatColor.RED + newLanguage.getName());
         return true;

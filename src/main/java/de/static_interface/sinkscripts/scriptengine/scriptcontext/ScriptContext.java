@@ -29,14 +29,14 @@ public class ScriptContext {
     private final SinkUser user;
     private Object executor;
     private ScriptLanguage language;
-    private String code;
+    private String code = "";
 
     public ScriptContext(SinkUser user, ScriptLanguage language, Plugin plugin) {
         this.user = user;
         this.language = language;
         this.plugin = plugin;
         if(language != null) {
-            this.executor = language.createExecutor();
+            this.executor = language.createExecutor(this);
         }
     }
 
@@ -80,7 +80,7 @@ public class ScriptContext {
 
     public void setScriptLanguage(ScriptLanguage language) {
         this.language = language;
-        this.executor = language.createExecutor();
+        this.executor = language.createExecutor(this);
     }
 
     public Plugin getPlugin() {

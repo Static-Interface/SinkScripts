@@ -97,7 +97,7 @@ public class Util {
 
     public static String loadFile(File scriptFile) throws IOException {
         String nl = Util.getNewLine();
-        if (!scriptFile.exists()) {
+        if (scriptFile == null || !scriptFile.exists()) {
             throw new FileNotFoundException("Couldn't find file: " + scriptFile);
         }
         BufferedReader br = new BufferedReader(new FileReader(scriptFile));

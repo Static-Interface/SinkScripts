@@ -17,6 +17,7 @@
 
 package de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl;
 
+import de.static_interface.sinkscripts.scriptengine.scriptcontext.ScriptContext;
 import de.static_interface.sinkscripts.util.Util;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
@@ -165,9 +166,12 @@ public class GroovyScript extends ScriptEngineScript {
     }
 
     @Override
-    public String getDefaultImports() {
+    public String getDefaultImports(ScriptContext context) {
         String nl = Util.getNewLine();
         return "import de.static_interface.sinklibrary.*;" + nl +
+               "import de.static_interface.sinklibrary.user.*;" + nl +
+               "import de.static_interface.sinklibrary.api.*;" + nl +
+               "import de.static_interface.sinklibrary.api.user.*;" + nl +
                "import de.static_interface.sinkscripts.*;" + nl +
                "import org.bukkit.block.*;" + nl +
                "import org.bukkit.event.*;" + nl +

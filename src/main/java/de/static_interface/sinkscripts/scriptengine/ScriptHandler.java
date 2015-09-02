@@ -161,11 +161,11 @@ public class ScriptHandler {
                         code = localShellInstance.getCode();
                     }
 
-                    boolean useNl = !currentLine.startsWith("<");
-                    if (!useNl) {
-                        currentLine = currentLine.replaceFirst("<", "");
-                        nl = "";
-                    }
+                    //boolean useNl = !currentLine.startsWith("<");
+                    //if (!useNl) {
+                    //    currentLine = currentLine.replaceFirst("<", "");
+                    //    nl = "";
+                    //}
 
                     // remove last line and add the code after ^
                     if(line.length() > 0 && line.toCharArray()[0] == '^') {
@@ -241,6 +241,7 @@ public class ScriptHandler {
         language.setVariable(context, "base", user.getBase());
         language.setVariable(context, "sender", user.getSender());
         language.setVariable(context, "language", language);
+
 
         if (user instanceof IngameUser) {
             Player player = ((IngameUser) user).getPlayer();

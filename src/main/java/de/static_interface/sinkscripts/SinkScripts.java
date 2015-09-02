@@ -36,6 +36,7 @@ import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguag
 import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.GroovyScript;
 import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.JavaScriptScript;
 import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.LuaScript;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.PHPScript;
 import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.PythonScript;
 import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.RubyScript;
 import org.bukkit.Bukkit;
@@ -108,6 +109,7 @@ public class SinkScripts extends JavaPlugin {
         ScriptHandler.getInstance().register(new LuaScript(this));
         ScriptHandler.getInstance().register(new PythonScript(this));
         ScriptHandler.getInstance().register(new RubyScript(this));
+        ScriptHandler.getInstance().register(new PHPScript(this));
     }
 
     public ClassLoader getClazzLoader() {
@@ -118,11 +120,11 @@ public class SinkScripts extends JavaPlugin {
         loadAutoStart(getConsoleContext());
     }
 
-    public void loadAutoStart(ScriptContext context) {
-        ScriptContext tmpContext = new ScriptContext(context);
+    public void loadAutoStart(ScriptContext executorContext) {
+        ScriptContext localContext = new ScriptContext(executorContext);
         for (ScriptLanguage language : ScriptHandler.getInstance().getScriptLanguages()) {
-            tmpContext.setScriptLanguage(language);
-            language.onAutoStart(tmpContext);
+            localContext.setScriptLanguage(language);
+            language.onAutoStart(localContext);
         }
     }
 

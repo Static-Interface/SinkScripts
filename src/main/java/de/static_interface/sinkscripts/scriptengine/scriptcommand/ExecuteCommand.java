@@ -126,16 +126,21 @@ public class ExecuteCommand extends ScriptCommandBase {
             code = Util.loadFile(scriptName, context.getScriptLanguage());
         }
 
-        result =
-                context.getScriptLanguage().run(context, code, noImports,
-                             clear);
+        try {
+            result =
+                    context.getScriptLanguage().run(context, code, noImports,
+                                 clear);
+        } catch (Throwable throwable) {
+            Util.reportException(context.getUser(), throwable);
+            return true;
+        }
 
         if(result instanceof Object[]) {
             result = Arrays.asList((Object[])result);
         }
 
         if (!skipOutput) {
-            context.getUser().sendMessage(ChatColor.AQUA + "Output: " + ChatColor.GREEN + context.getScriptLanguage().formatCode(String.valueOf(result)));
+            context.getUser().sendMessage(ChatColor.DARK_BLUE + "" + ChatColor.BOLD + "Return Output: " + ChatColor.RESET + "" + ChatColor.BLUE + context.getScriptLanguage().formatCode(String.valueOf(result)));
         }
 
         return true;

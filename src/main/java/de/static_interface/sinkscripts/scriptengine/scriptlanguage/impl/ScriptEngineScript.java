@@ -23,11 +23,15 @@ import de.static_interface.sinkscripts.scriptengine.scriptcontext.ScriptContext;
 import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguage;
 import de.static_interface.sinkscripts.util.JoinClassLoader;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
+import javax.annotation.Nullable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 
 public abstract class ScriptEngineScript extends ScriptLanguage<ScriptEngine> {
 
@@ -39,19 +43,34 @@ public abstract class ScriptEngineScript extends ScriptLanguage<ScriptEngine> {
     }
 
     @Override
-    public Object eval(ScriptContext context, String code) {
-        try {
-            return ((ScriptEngine)context.getExecutor()).eval(code);
-        } catch (ScriptException e) {
-            throw new RuntimeException(e);
-        }
+    public Object eval(ScriptContext context, String code) throws Throwable {
+        return ((ScriptEngine)context.getExecutor()).eval(code);
     }
 
     @Override
-    public ScriptEngine createExecutor() {
-        return new ScriptEngineManager
+    public ScriptEngine createExecutor(@Nullable final ScriptContext context) {
+        ScriptEngine engine = new ScriptEngineManager
                 (new JoinClassLoader(SinkLibrary.getInstance().getClazzLoader(), Bukkit.class.getClassLoader(),
-                                     ((SinkScripts)plugin).getClazzLoader())).getEngineByName(engineName);
+                                     ((SinkScripts)plugin).getClazzLoader(), SinkLibrary.class.getClassLoader())).getEngineByName(engineName);
+
+        if(context != null) {
+            final StringWriter writer = new StringWriter() {
+                @Override
+                public void flush() {
+                    super.flush();
+                    String msg = toString();
+                    for(String s : msg.split("\n")) {
+                        context.getUser().sendMessage(
+                                ChatColor.DARK_GREEN + "" + ChatColor.ITALIC + "System.out: " + ChatColor.RESET + "" + ChatColor.WHITE + s);
+                    }
+                    getBuffer().delete(0, getBuffer().length());
+                }
+            };
+            PrintWriter pw = new PrintWriter(writer, true);
+            engine.getContext().setWriter(pw);
+        }
+
+        return engine;
     }
 
     @Override

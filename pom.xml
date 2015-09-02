@@ -48,31 +48,14 @@
         <url>https://github.com/Adventuria/SinkScripts</url>
     </scm>
 
-    <distributionManagement>
-        <repository>
-            <id>deployment</id>
-            <name>Releases Repo</name>
-            <url>http://nexus.static-interface.de/nexus/content/repositories/releases/</url>
-        </repository>
-        <snapshotRepository>
-            <id>deployment</id>
-            <name>Snapshots Repo</name>
-            <url>http://nexus.static-interface.de/nexus/content/repositories/snapshots/</url>
-        </snapshotRepository>
-    </distributionManagement>
-
     <repositories>
         <repository>
             <id>bukkit-repo</id>
             <url>http://repo.bukkit.org/content/repositories/snapshots/</url>
         </repository>
         <repository>
-            <id>static-interface</id>
-            <url>http://nexus.static-interface.de/nexus/content/repositories/snapshots/</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
+            <id>caucho-repo</id>
+            <url>http://caucho.com/m2-snapshot/</url>
         </repository>
     </repositories>
 
@@ -88,6 +71,12 @@
             <groupId>de.static_interface</groupId>
             <artifactId>SinkLibrary</artifactId>
             <version>1.9.8.4-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.caucho</groupId>
+            <artifactId>quercus</artifactId>
+            <version>4.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

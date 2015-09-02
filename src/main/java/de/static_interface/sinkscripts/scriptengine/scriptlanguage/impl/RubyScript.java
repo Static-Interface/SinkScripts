@@ -17,6 +17,7 @@
 
 package de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl;
 
+import de.static_interface.sinkscripts.scriptengine.scriptcontext.ScriptContext;
 import de.static_interface.sinkscripts.util.Util;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
@@ -159,12 +160,15 @@ public class RubyScript extends ScriptEngineScript {
     }
 
     @Override
-    public String getDefaultImports() {
+    public String getDefaultImports(ScriptContext context) {
         String nl = Util.getNewLine();
         return "require 'java'" + nl +
 
                "module SinkLibrary" + nl +
                "    include_package \"de.static_interface.sinklibrary\"" + nl +
+               "    include_package \"de.static_interface.sinklibrary.user\"" + nl +
+               "    include_package \"de.static_interface.sinklibrary.api\"" + nl +
+               "    include_package \"de.static_interface.sinklibrary.api.user\"" + nl +
                "end" + nl + nl +
 
                "module SinkScripts" + nl +

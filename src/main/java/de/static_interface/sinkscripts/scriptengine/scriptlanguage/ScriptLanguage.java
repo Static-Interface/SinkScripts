@@ -20,7 +20,6 @@ package de.static_interface.sinkscripts.scriptengine.scriptlanguage;
 import static de.static_interface.sinkscripts.SinkScripts.SCRIPTS_FOLDER;
 
 import de.static_interface.sinklibrary.SinkLibrary;
-import de.static_interface.sinklibrary.api.user.SinkUser;
 import de.static_interface.sinkscripts.scriptengine.ScriptHandler;
 import de.static_interface.sinkscripts.scriptengine.scriptcontext.ScriptContext;
 import de.static_interface.sinkscripts.util.Util;
@@ -28,7 +27,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -67,11 +65,11 @@ public abstract class ScriptLanguage<T> {
 
     public abstract String formatCode(String code);
 
-    public Object run(ScriptContext context, String code, boolean skipImports, boolean clear) {
+    public Object run(ScriptContext context, String code, boolean skipImports, boolean clear) throws Throwable {
         SinkLibrary.getInstance().getCustomLogger().logToFile(Level.INFO, context.getUser().getName() + " executed script: " + code);
 
         if (!skipImports) {
-            code = onUpdateImports(code);
+            code = onUpdateImports(context, code);
         }
 
         Object result = eval(context, code);
@@ -83,25 +81,21 @@ public abstract class ScriptLanguage<T> {
         return result;
     }
 
-    protected Object run(ScriptContext context, File file) {
+    protected Object run(ScriptContext context, File file) throws Throwable {
         SinkLibrary.getInstance().getCustomLogger().logToFile(Level.INFO, context.getUser().getName() + " executed script file: " + file);
 
         setVariable(context, "scriptfile", file);
-        try {
-            return eval(context, onUpdateImports(Util.loadFile(file)));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return eval(context, onUpdateImports(context, Util.loadFile(file)));
     }
 
-    protected abstract Object eval(ScriptContext context, String code);
+    protected abstract Object eval(ScriptContext context, String code) throws Throwable;
 
     /**
      * @param args String[] you want to convert to value
      * @return primite Value
      */
 
-    public Object getValue(String[] args, SinkUser user) {
+    public Object getValue(String[] args) {
         String arg = args[0];
 
         try {
@@ -152,7 +146,7 @@ public abstract class ScriptLanguage<T> {
             List<String> list = Arrays.asList(tmp.substring(1, tmp.length() - 1).split(", "));
             List<Object> arrayList = new ArrayList<>();
             for(String s : list) {
-                arrayList.add(getValue(s.split(" "), user));
+                arrayList.add(getValue(s.split(" ")));
             }
             return arrayList.toArray(new Object[arrayList.size()]);
         }
@@ -164,8 +158,8 @@ public abstract class ScriptLanguage<T> {
         throw new IllegalArgumentException("Unknown value");
     }
 
-    protected String onUpdateImports(String code) {
-        String defaultImports = getDefaultImports();
+    protected String onUpdateImports(ScriptContext context, String code) {
+        String defaultImports = getDefaultImports(context);
         if (defaultImports == null) {
             return code;
         }
@@ -173,7 +167,7 @@ public abstract class ScriptLanguage<T> {
         return defaultImports + code;
     }
 
-    public abstract String getDefaultImports();
+    public abstract String getDefaultImports(ScriptContext context);
 
     public abstract void setVariable(ScriptContext context, String name, Object value);
 
@@ -183,7 +177,7 @@ public abstract class ScriptLanguage<T> {
         autoStartRecur(AUTOSTART_DIRECTORY, context);
     }
 
-    public abstract T createExecutor();
+    public abstract T createExecutor(ScriptContext context);
 
     private void autoStartRecur(File directory, ScriptContext context) {
         File[] files = directory.listFiles();

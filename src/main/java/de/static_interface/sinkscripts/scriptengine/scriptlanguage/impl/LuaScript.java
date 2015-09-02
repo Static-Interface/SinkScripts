@@ -17,6 +17,7 @@
 
 package de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl;
 
+import de.static_interface.sinkscripts.scriptengine.scriptcontext.ScriptContext;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 
@@ -129,7 +130,7 @@ public class LuaScript extends ScriptEngineScript {
     }
 
     @Override
-    public String getDefaultImports() {
+    public String getDefaultImports(ScriptContext context) {
         return ""; //??
     }
 
