@@ -36,7 +36,6 @@ import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguag
 import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.GroovyScript;
 import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.JavaScriptScript;
 import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.LuaScript;
-import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.PHPScript;
 import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.PythonScript;
 import de.static_interface.sinkscripts.scriptengine.scriptlanguage.impl.RubyScript;
 import org.bukkit.Bukkit;
@@ -109,7 +108,7 @@ public class SinkScripts extends JavaPlugin {
         ScriptHandler.getInstance().register(new LuaScript(this));
         ScriptHandler.getInstance().register(new PythonScript(this));
         ScriptHandler.getInstance().register(new RubyScript(this));
-        ScriptHandler.getInstance().register(new PHPScript(this));
+        //ScriptHandler.getInstance().register(new PHPScript(this));
     }
 
     public ClassLoader getClazzLoader() {
