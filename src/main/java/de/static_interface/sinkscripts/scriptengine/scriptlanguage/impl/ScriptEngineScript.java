@@ -49,9 +49,12 @@ public abstract class ScriptEngineScript extends ScriptLanguage<ScriptEngine> {
 
     @Override
     public ScriptEngine createExecutor(@Nullable final ScriptContext context) {
-        ScriptEngine engine = new ScriptEngineManager
-                (new JoinClassLoader(SinkLibrary.getInstance().getClazzLoader(), Bukkit.class.getClassLoader(),
-                                     ((SinkScripts)plugin).getClazzLoader(), SinkLibrary.class.getClassLoader())).getEngineByName(engineName);
+        ClassLoader cl = new JoinClassLoader(SinkLibrary.getInstance().getClazzLoader(), Bukkit.class.getClassLoader(),
+                            ((SinkScripts)plugin).getClazzLoader(), SinkLibrary.class.getClassLoader());
+
+        Thread.currentThread().setContextClassLoader(cl);
+        ScriptEngine engine = new ScriptEngineManager(cl).getEngineByName(engineName);
+
 
         if(context != null) {
             final StringWriter writer = new StringWriter() {

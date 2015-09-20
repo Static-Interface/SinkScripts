@@ -42,7 +42,7 @@ public class ScriptCommand extends SinkCommand {
             for (String arg : args) {
                 currentLine += arg + ' ';
             }
-            ScriptHandler.getInstance().handleLine(user, currentLine, plugin);
+            ScriptHandler.getInstance().handleLine(user, currentLine, getPlugin());
             return true;
         }
 
