@@ -123,6 +123,7 @@ public class SinkScripts extends JavaPlugin {
         ScriptContext localContext = new ScriptContext(executorContext);
         for (ScriptLanguage language : ScriptHandler.getInstance().getScriptLanguages()) {
             localContext.setScriptLanguage(language);
+            if(localContext.getExecutor() == null) continue; //not supported language
             language.onAutoStart(localContext);
         }
     }

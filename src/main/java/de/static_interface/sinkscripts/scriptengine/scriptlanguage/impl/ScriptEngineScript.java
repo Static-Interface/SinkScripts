@@ -54,7 +54,7 @@ public abstract class ScriptEngineScript extends ScriptLanguage<ScriptEngine> {
 
         Thread.currentThread().setContextClassLoader(cl);
         ScriptEngine engine = new ScriptEngineManager(cl).getEngineByName(engineName);
-
+        if(engine == null) return null;
 
         if(context != null) {
             final StringWriter writer = new StringWriter() {
