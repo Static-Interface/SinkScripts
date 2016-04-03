@@ -170,7 +170,7 @@ public class PythonScript extends ScriptEngineScript {
         if (jynxDirectory.exists()) {
             setupJynx(jynxDirectory);
         } else {
-            SinkLibrary.getInstance().getCustomLogger().warn("Warning! Couldn't find jynx! Missing directory: " + jynxDirectory.getAbsolutePath());
+            SinkScripts.getInstance().getLogger().warning("Warning! Couldn't find jynx! Missing directory: " + jynxDirectory.getAbsolutePath());
         }
     }
 

@@ -19,7 +19,6 @@ package de.static_interface.sinkscripts.scriptengine.scriptlanguage;
 
 import static de.static_interface.sinkscripts.SinkScripts.SCRIPTS_FOLDER;
 
-import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinkscripts.scriptengine.ScriptHandler;
 import de.static_interface.sinkscripts.scriptengine.scriptcontext.ScriptContext;
 import de.static_interface.sinkscripts.util.Util;
@@ -31,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.logging.Level;
 
 public abstract class ScriptLanguage<T> {
     public File SCRIPTLANGUAGE_DIRECTORY;
@@ -66,8 +64,6 @@ public abstract class ScriptLanguage<T> {
     public abstract String formatCode(String code);
 
     public Object run(ScriptContext context, String code, boolean skipImports, boolean clear) throws Throwable {
-        SinkLibrary.getInstance().getCustomLogger().logToFile(Level.INFO, context.getUser().getName() + " executed script: " + code);
-
         if (!skipImports) {
             code = onUpdateImports(context, code);
         }
@@ -82,8 +78,6 @@ public abstract class ScriptLanguage<T> {
     }
 
     protected Object run(ScriptContext context, File file) throws Throwable {
-        SinkLibrary.getInstance().getCustomLogger().logToFile(Level.INFO, context.getUser().getName() + " executed script file: " + file);
-
         setVariable(context, "scriptfile", file);
         return eval(context, onUpdateImports(context, Util.loadFile(file)));
     }

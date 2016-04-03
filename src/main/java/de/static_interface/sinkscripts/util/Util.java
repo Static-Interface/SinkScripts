@@ -17,17 +17,21 @@
 
 package de.static_interface.sinkscripts.util;
 
-import de.static_interface.sinklibrary.*;
-import de.static_interface.sinklibrary.api.user.*;
-import de.static_interface.sinkscripts.*;
-import de.static_interface.sinkscripts.scriptengine.scriptlanguage.*;
-import org.bukkit.*;
+import de.static_interface.sinklibrary.api.user.SinkUser;
+import de.static_interface.sinklibrary.util.Debug;
+import de.static_interface.sinkscripts.SinkScripts;
+import de.static_interface.sinkscripts.scriptengine.scriptlanguage.ScriptLanguage;
+import org.bukkit.ChatColor;
 
-import java.io.*;
-import java.util.logging.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.logging.Level;
 
-import javax.annotation.*;
-import javax.script.*;
+import javax.annotation.Nullable;
+import javax.script.ScriptException;
 
 public class Util {
 
@@ -116,7 +120,7 @@ public class Util {
     public static String loadFile(String scriptName, @Nullable ScriptLanguage language) throws IOException {
         File scriptFile = new File(language.SCRIPTLANGUAGE_DIRECTORY, scriptName + "." + language.getFileExtension());
         if (!scriptFile.exists()) {
-            SinkLibrary.getInstance().getCustomLogger().debug("Couldn't find file: " + scriptFile.getAbsolutePath());
+            Debug.log("Couldn't find file: " + scriptFile.getAbsolutePath());
             scriptFile = Util.searchRecursively(scriptName, language.SCRIPTLANGUAGE_DIRECTORY, language);
         }
         return loadFile(scriptFile);

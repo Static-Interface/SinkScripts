@@ -19,7 +19,6 @@ package de.static_interface.sinkscripts.scriptengine;
 
 import de.static_interface.sinklibrary.api.user.SinkUser;
 import de.static_interface.sinklibrary.user.IngameUser;
-import de.static_interface.sinklibrary.util.BukkitUtil;
 import de.static_interface.sinklibrary.util.StringUtil;
 import de.static_interface.sinkscripts.SinkScripts;
 import de.static_interface.sinkscripts.scriptengine.scriptcommand.ScriptCommandBase;
@@ -237,7 +236,7 @@ public class ScriptHandler {
         language.setVariable(context, "me", user);
         language.setVariable(context, "plugin", plugin);
         language.setVariable(context, "server", Bukkit.getServer());
-        language.setVariable(context, "players", BukkitUtil.getOnlinePlayers());
+        language.setVariable(context, "players", Bukkit.getOnlinePlayers());
         language.setVariable(context, "base", user.getBase());
         language.setVariable(context, "sender", user.getSender());
         language.setVariable(context, "language", language);
