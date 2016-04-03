@@ -45,6 +45,7 @@ public class RunInjectionCommand extends ScriptCommandBase {
         } catch (Exception e) {
             Util.reportException(context.getUser(), e);
             e.printStackTrace();
+            return true;
         }
 
         context.getUser().sendMessage(ChatColor.DARK_GREEN + "Done");

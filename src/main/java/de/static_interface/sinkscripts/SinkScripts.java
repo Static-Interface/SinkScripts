@@ -112,12 +112,15 @@ public class SinkScripts extends JavaPlugin {
     }
 
     public void runInjection(String file) throws Exception {
+        String appendedFileName = file;
+        if(!appendedFileName.endsWith(".patch"))
+            appendedFileName = appendedFileName + ".patch";
         File f = new File(file);
         if(!f.exists()){
-            f = new File(INJECTS_FOLDER, file + ".patch");
+            f = new File(INJECTS_FOLDER, appendedFileName);
         }
         if(!f.exists()){
-            f = new File(new File(INJECTS_FOLDER, "autostart"), file + ".patch");
+            f = new File(new File(INJECTS_FOLDER, "autostart"), appendedFileName);
         }
         if(!f.exists()){
             throw new IllegalArgumentException("File not found: " + file + "!");
@@ -143,21 +146,26 @@ public class SinkScripts extends JavaPlugin {
             }
 
             if (!codeStart) {
-                if (!line.startsWith("[") && line.endsWith("]")) {
-                    line = line.replaceFirst("\\[", "");
+                if (line.startsWith("[") && line.endsWith("]")) {
+                    line = line.replaceFirst("\\Q[\\E", "");
                     line = StringUtil.replaceLast(line, "]", "");
-                    String[] parts = line.split("=", 2);
+                    String[] parts = line.split(":", 2);
+                    parts[0] = parts[0].trim();
                     if(parts[0].equalsIgnoreCase("Constructor")){
                         constructor = true;
                     }
 
                     if(parts.length < 2) continue;
+                    parts[1] = parts[1].trim();
+
                     switch (parts[0].toLowerCase()){
                         case "method" :
                             method = parts[1];
+                            break;
                         case "at":
                         case "injecttarget":
                             target = InjectTarget.valueOf(parts[1].toUpperCase());
+                            break;
                         case "arg":
                         case "methodarg":
                             methodArgs.add(Class.forName(parts[1]));
@@ -192,10 +200,11 @@ public class SinkScripts extends JavaPlugin {
         }
         Validate.notEmpty(code, "no code found");
 
-        if (constructor) {
-            Injector.injectCode(targetClass, getClassLoader(), method, methodArgs.toArray(new Class[methodArgs.size()]), code, target);
+        Class clazz = Class.forName(targetClass);
+        if (!constructor) {
+            Injector.injectCode(targetClass, clazz.getClassLoader(), method, methodArgs.toArray(new Class[methodArgs.size()]), code, target);
         } else {
-            Injector.injectCodeConstructor(targetClass, getClassLoader(), methodArgs.toArray(new Class[methodArgs.size()]), code, target);
+            Injector.injectCodeConstructor(targetClass, clazz.getClassLoader(), methodArgs.toArray(new Class[methodArgs.size()]), code, target);
         }
     }
 

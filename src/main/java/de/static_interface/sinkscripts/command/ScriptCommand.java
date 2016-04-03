@@ -29,7 +29,7 @@ public class ScriptCommand extends SinkCommand {
 
     public ScriptCommand(Plugin plugin) {
         super(plugin);
-        getCommandOptions().setIrcOpOnly(true);
+        //getCommandOptions().setIrcOpOnly(true);
         getCommandOptions().setCliOptions(null);
     }
 
